@@ -36,25 +36,27 @@ func runFile(fileName string) error {
 }
 
 func runPrompt() error {
-	scanner := bufio.NewScanner(os.Stdin)
+	ioScanner := bufio.NewScanner(os.Stdin)
 	fmt.Print("> ")
-	for scanner.Scan() {
-		line := scanner.Text()
+	for ioScanner.Scan() {
+		line := ioScanner.Text()
 		run(line)
 		fmt.Print("> ")
 	}
-	if err := scanner.Err(); err != nil {
+	if err := ioScanner.Err(); err != nil {
 		fmt.Println("Error scanning")
 		return err
 	}
 	return nil
 }
 
-func run(source string) error {
-	scanner := NewScanner(source)
+func run(source string) {
+	scanner := NewScanner(source, os.Stderr)
 	scanner.ScanTokens()
 	for _, token := range scanner.Tokens {
 		fmt.Println(token)
 	}
-	return nil
+	if scanner.HadError {
+		os.Exit(65)
+	}
 }

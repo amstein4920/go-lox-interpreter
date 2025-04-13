@@ -2,21 +2,26 @@ package main
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/codecrafters-io/interpreter-starter-go/app/tree"
 )
 
 type Scanner struct {
-	source  string
-	start   int
-	current int
-	line    int
-	Tokens  []tree.Token
+	source   string
+	start    int
+	current  int
+	line     int
+	Tokens   []tree.Token
+	StdErr   io.Writer
+	HadError bool
 }
 
-func NewScanner(source string) *Scanner {
+func NewScanner(source string, stdErr io.Writer) *Scanner {
 	return &Scanner{
 		source: source,
+		StdErr: stdErr,
+		line:   1,
 	}
 }
 
@@ -59,7 +64,7 @@ func (s *Scanner) scanToken() {
 	case '*':
 		s.addToken(tree.STAR)
 	default:
-		fmt.Println("Do something for lexical errors")
+		s.error("Unexpected character: " + string(char))
 	}
 }
 
@@ -81,4 +86,9 @@ func (s *Scanner) addFullToken(tokenType tree.TokenType, literal any) {
 		Literal:   literal,
 		Line:      s.line,
 	})
+}
+
+func (s *Scanner) error(message string) {
+	s.HadError = true
+	_, _ = s.StdErr.Write([]byte(fmt.Sprintf("[line %d] Error: %s\n", s.line, message)))
 }
