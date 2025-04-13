@@ -44,6 +44,20 @@ func (s *Scanner) scanToken() {
 		s.addToken(tree.LEFT_BRACE)
 	case '}':
 		s.addToken(tree.RIGHT_BRACE)
+	case ',':
+		s.addToken(tree.COMMA)
+	case '.':
+		s.addToken(tree.DOT)
+	case '-':
+		s.addToken(tree.MINUS)
+	case '+':
+		s.addToken(tree.PLUS)
+	case ';':
+		s.addToken(tree.SEMICOLON)
+	case '/':
+		s.addToken(tree.SLASH)
+	case '*':
+		s.addToken(tree.STAR)
 	default:
 		fmt.Println("Do something for lexical errors")
 	}
