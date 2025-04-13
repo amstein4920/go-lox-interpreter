@@ -10,15 +10,15 @@ func _() {
 	var x [1]struct{}
 	_ = x[LEFT_PAREN-0]
 	_ = x[RIGHT_PAREN-1]
-	_ = x[LeftBrace-2]
-	_ = x[RightBrace-3]
-	_ = x[Comma-4]
-	_ = x[Dot-5]
-	_ = x[Minus-6]
-	_ = x[Plus-7]
-	_ = x[Semicolon-8]
-	_ = x[Slash-9]
-	_ = x[Star-10]
+	_ = x[LEFT_BRACE-2]
+	_ = x[RIGHT_BRACE-3]
+	_ = x[COMMA-4]
+	_ = x[DOT-5]
+	_ = x[MINUS-6]
+	_ = x[PLUS-7]
+	_ = x[SEMICOLON-8]
+	_ = x[SLASH-9]
+	_ = x[STAR-10]
 	_ = x[Bang-11]
 	_ = x[BangEqual-12]
 	_ = x[Equal-13]
@@ -49,9 +49,9 @@ func _() {
 	_ = x[EOF-38]
 }
 
-const _TokenType_name = "LEFT_PARENRIGHT_PARENLeftBraceRightBraceCommaDotMinusPlusSemicolonSlashStarBangBangEqualEqualEqualEqualGreaterGreaterEqualLessLessEqualIdentifierStringNumberAndClassElseFalseFunForIfNilOrPrintReturnSuperThisTrueVarWhileEOF"
+const _TokenType_name = "LEFT_PARENRIGHT_PARENLEFT_BRACERIGHT_BRACECOMMADOTMINUSPLUSSEMICOLONSLASHSTARBangBangEqualEqualEqualEqualGreaterGreaterEqualLessLessEqualIdentifierStringNumberAndClassElseFalseFunForIfNilOrPrintReturnSuperThisTrueVarWhileEOF"
 
-var _TokenType_index = [...]uint8{0, 10, 21, 30, 40, 45, 48, 53, 57, 66, 71, 75, 79, 88, 93, 103, 110, 122, 126, 135, 145, 151, 157, 160, 165, 169, 174, 177, 180, 182, 185, 187, 192, 198, 203, 207, 211, 214, 219, 222}
+var _TokenType_index = [...]uint8{0, 10, 21, 31, 42, 47, 50, 55, 59, 68, 73, 77, 81, 90, 95, 105, 112, 124, 128, 137, 147, 153, 159, 162, 167, 171, 176, 179, 182, 184, 187, 189, 194, 200, 205, 209, 213, 216, 221, 224}
 
 func (i TokenType) String() string {
 	if i < 0 || i >= TokenType(len(_TokenType_index)-1) {

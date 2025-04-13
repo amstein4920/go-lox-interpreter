@@ -40,6 +40,10 @@ func (s *Scanner) scanToken() {
 		s.addToken(tree.LEFT_PAREN)
 	case ')':
 		s.addToken(tree.RIGHT_PAREN)
+	case '{':
+		s.addToken(tree.LEFT_BRACE)
+	case '}':
+		s.addToken(tree.RIGHT_BRACE)
 	default:
 		fmt.Println("Do something for lexical errors")
 	}

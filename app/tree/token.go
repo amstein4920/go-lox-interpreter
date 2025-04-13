@@ -27,15 +27,15 @@ const (
 	//Single-character types
 	LEFT_PAREN TokenType = iota
 	RIGHT_PAREN
-	LeftBrace
-	RightBrace
-	Comma
-	Dot
-	Minus
-	Plus
-	Semicolon
-	Slash
-	Star
+	LEFT_BRACE
+	RIGHT_BRACE
+	COMMA
+	DOT
+	MINUS
+	PLUS
+	SEMICOLON
+	SLASH
+	STAR
 
 	//Single- or Double-character types
 	Bang
