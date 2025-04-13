@@ -1,38 +1,60 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 )
 
 func main() {
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
-	fmt.Fprintln(os.Stderr, "Logs from your program will appear here!")
-
-	if len(os.Args) < 3 {
-		fmt.Fprintln(os.Stderr, "Usage: ./your_program.sh tokenize <filename>")
-		os.Exit(1)
-	}
-
-	command := os.Args[1]
-
+	args := os.Args[1:]
+	command := args[0]
 	if command != "tokenize" {
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
-		os.Exit(1)
 	}
 
-	// Uncomment this block to pass the first stage
-
-	filename := os.Args[2]
-	fileContents, err := os.ReadFile(filename)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
+	if len(args) < 2 {
+		fmt.Fprintln(os.Stderr, "Usage: ./your_program.sh tokenize <filename>")
 		os.Exit(1)
-	}
-
-	if len(fileContents) > 0 {
-		panic("Scanner not implemented")
+	} else if len(args) == 2 {
+		err := runFile(args[1])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
+			os.Exit(1)
+		}
 	} else {
-		fmt.Println("EOF  null") // Placeholder, remove this line when implementing the scanner
+		runPrompt()
 	}
+}
+func runFile(fileName string) error {
+	bytes, err := os.ReadFile(fileName)
+	if err != nil {
+		return err
+	}
+	run(string(bytes))
+	return nil
+}
+
+func runPrompt() error {
+	scanner := bufio.NewScanner(os.Stdin)
+	fmt.Print("> ")
+	for scanner.Scan() {
+		line := scanner.Text()
+		run(line)
+		fmt.Print("> ")
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Println("Error scanning")
+		return err
+	}
+	return nil
+}
+
+func run(source string) error {
+	scanner := NewScanner(source)
+	scanner.ScanTokens()
+	for _, token := range scanner.Tokens {
+		fmt.Println(token)
+	}
+	return nil
 }
