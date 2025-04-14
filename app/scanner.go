@@ -60,7 +60,13 @@ func (s *Scanner) scanToken() {
 	case ';':
 		s.addToken(tree.SEMICOLON)
 	case '/':
-		s.addToken(tree.SLASH)
+		if s.match('/') {
+			for s.peek() != '\n' && s.current < len(s.source) {
+				s.advance()
+			}
+		} else {
+			s.addToken(tree.SLASH)
+		}
 	case '*':
 		s.addToken(tree.STAR)
 	case '!':
@@ -95,6 +101,11 @@ func (s *Scanner) scanToken() {
 			tokenType = tree.LESS
 		}
 		s.addToken(tokenType)
+	case ' ', '\r', '\t':
+		//Ignore whitespace
+		break
+	case '\n':
+		s.line++
 	default:
 		s.error("Unexpected character: " + string(char))
 	}
@@ -115,6 +126,13 @@ func (s *Scanner) match(expected rune) bool {
 	}
 	s.current++
 	return true
+}
+
+func (s *Scanner) peek() rune {
+	if s.current >= len(s.source) {
+		return '0'
+	}
+	return rune(s.source[s.current])
 }
 
 func (s *Scanner) addToken(tokenType tree.TokenType) {
