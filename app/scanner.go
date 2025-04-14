@@ -63,6 +63,38 @@ func (s *Scanner) scanToken() {
 		s.addToken(tree.SLASH)
 	case '*':
 		s.addToken(tree.STAR)
+	case '!':
+		var tokenType tree.TokenType
+		if s.match('=') {
+			tokenType = tree.BANG_EQUAL
+		} else {
+			tokenType = tree.BANG
+		}
+		s.addToken(tokenType)
+	case '=':
+		var tokenType tree.TokenType
+		if s.match('=') {
+			tokenType = tree.EQUAL_EQUAL
+		} else {
+			tokenType = tree.EQUAL
+		}
+		s.addToken(tokenType)
+	case '>':
+		var tokenType tree.TokenType
+		if s.match('=') {
+			tokenType = tree.GREATER_EQUAL
+		} else {
+			tokenType = tree.GREATER
+		}
+		s.addToken(tokenType)
+	case '<':
+		var tokenType tree.TokenType
+		if s.match('=') {
+			tokenType = tree.LESS_EQUAL
+		} else {
+			tokenType = tree.LESS
+		}
+		s.addToken(tokenType)
 	default:
 		s.error("Unexpected character: " + string(char))
 	}
@@ -72,6 +104,17 @@ func (s *Scanner) advance() rune {
 	char := rune(s.source[s.current])
 	s.current++
 	return char
+}
+
+func (s *Scanner) match(expected rune) bool {
+	if s.current >= len(s.source) {
+		return false
+	}
+	if rune(s.source[s.current]) != expected {
+		return false
+	}
+	s.current++
+	return true
 }
 
 func (s *Scanner) addToken(tokenType tree.TokenType) {

@@ -38,14 +38,14 @@ const (
 	STAR
 
 	//Single- or Double-character types
-	Bang
-	BangEqual
-	Equal
-	EqualEqual
-	Greater
-	GreaterEqual
-	Less
-	LessEqual
+	BANG
+	BANG_EQUAL
+	EQUAL
+	EQUAL_EQUAL
+	GREATER
+	GREATER_EQUAL
+	LESS
+	LESS_EQUAL
 
 	//Literals
 	Identifier
