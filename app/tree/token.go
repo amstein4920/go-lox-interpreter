@@ -15,6 +15,12 @@ func (t Token) String() string {
 	var literal any
 	if t.Literal == nil {
 		literal = "null"
+	} else if lit, ok := t.Literal.(float64); ok {
+		if lit == float64(int(lit)) {
+			literal = fmt.Sprintf("%.1f", lit)
+		} else {
+			literal = fmt.Sprintf("%g", lit)
+		}
 	} else {
 		literal = t.Literal
 	}

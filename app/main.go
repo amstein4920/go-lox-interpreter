@@ -23,7 +23,11 @@ func main() {
 			os.Exit(1)
 		}
 	} else {
-		runPrompt()
+		err := runPrompt()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading prompt values: %v\n", err)
+			os.Exit(1)
+		}
 	}
 }
 func runFile(fileName string) error {

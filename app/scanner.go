@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"io"
+	"os"
+	"strconv"
 
 	"github.com/codecrafters-io/interpreter-starter-go/app/tree"
 )
@@ -101,6 +103,8 @@ func (s *Scanner) scanToken() {
 			tokenType = tree.LESS
 		}
 		s.addToken(tokenType)
+	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		s.scanNumber()
 	case ' ', '\r', '\t':
 		//Ignore whitespace
 		break
@@ -132,9 +136,16 @@ func (s *Scanner) match(expected rune) bool {
 
 func (s *Scanner) peek() rune {
 	if s.isEnd() {
-		return '0'
+		return '\000'
 	}
 	return rune(s.source[s.current])
+}
+
+func (s *Scanner) peekSecond() rune {
+	if s.current+1 > len(s.source) {
+		return '\000'
+	}
+	return rune(s.source[s.current+1])
 }
 
 func (s *Scanner) addToken(tokenType tree.TokenType) {
@@ -167,6 +178,27 @@ func (s *Scanner) scanString() {
 	s.addFullToken(tree.STRING, s.source[s.start+1:s.current-1]) // Sets token to string literal not including surrounding ""
 }
 
+func (s *Scanner) scanNumber() {
+	for isDigit(s.peek()) {
+		s.advance() // Advance through all proceeding digits
+	}
+	// Look for a '.' followed by more digits
+	if s.peek() == '.' && isDigit(s.peekSecond()) {
+		s.advance() // Consume '.'
+		for isDigit(s.peek()) {
+			s.advance() // Advance through remaining digits
+		}
+	}
+
+	parsedFloat, err := strconv.ParseFloat(s.source[s.start:s.current], 64)
+	if err != nil {
+		// Non-lexical error, just end process
+		fmt.Fprintf(os.Stderr, "Error parsing float vlaue: %v\n", err)
+		os.Exit(1)
+	}
+	s.addFullToken(tree.NUMBER, parsedFloat)
+}
+
 func (s *Scanner) isEnd() bool {
 	return s.current >= len(s.source)
 }
@@ -174,4 +206,8 @@ func (s *Scanner) isEnd() bool {
 func (s *Scanner) error(message string) {
 	s.HadError = true
 	_, _ = s.StdErr.Write([]byte(fmt.Sprintf("[line %d] Error: %s\n", s.line, message)))
+}
+
+func isDigit(r rune) bool {
+	return r >= '0' && r <= '9'
 }
