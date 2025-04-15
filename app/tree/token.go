@@ -48,26 +48,26 @@ const (
 	LESS_EQUAL
 
 	//Literals
-	Identifier
-	String
-	Number
+	IDENTIFIER
+	STRING
+	NUMBER
 
 	//Keywords
-	And
-	Class
-	Else
-	False
-	Fun
-	For
-	If
-	Nil
-	Or
-	Print
-	Return
-	Super
-	This
-	True
-	Var
-	While
+	AND
+	CLASS
+	ELSE
+	FALSE
+	FUN
+	FOR
+	IF
+	NIL
+	OR
+	PRINT
+	RETURN
+	SUPER
+	THIS
+	TRUE
+	VAR
+	WHILE
 	EOF
 )

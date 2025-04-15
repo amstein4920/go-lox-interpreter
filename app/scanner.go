@@ -26,7 +26,7 @@ func NewScanner(source string, stdErr io.Writer) *Scanner {
 }
 
 func (s *Scanner) ScanTokens() {
-	for s.current < len(s.source) {
+	for !s.isEnd() {
 		s.start = s.current
 		s.scanToken()
 	}
@@ -61,7 +61,7 @@ func (s *Scanner) scanToken() {
 		s.addToken(tree.SEMICOLON)
 	case '/':
 		if s.match('/') {
-			for s.peek() != '\n' && s.current < len(s.source) {
+			for s.peek() != '\n' && !s.isEnd() {
 				s.advance()
 			}
 		} else {
@@ -106,6 +106,8 @@ func (s *Scanner) scanToken() {
 		break
 	case '\n':
 		s.line++
+	case '"':
+		s.scanString()
 	default:
 		s.error("Unexpected character: " + string(char))
 	}
@@ -118,7 +120,7 @@ func (s *Scanner) advance() rune {
 }
 
 func (s *Scanner) match(expected rune) bool {
-	if s.current >= len(s.source) {
+	if s.isEnd() {
 		return false
 	}
 	if rune(s.source[s.current]) != expected {
@@ -129,7 +131,7 @@ func (s *Scanner) match(expected rune) bool {
 }
 
 func (s *Scanner) peek() rune {
-	if s.current >= len(s.source) {
+	if s.isEnd() {
 		return '0'
 	}
 	return rune(s.source[s.current])
@@ -147,6 +149,26 @@ func (s *Scanner) addFullToken(tokenType tree.TokenType, literal any) {
 		Literal:   literal,
 		Line:      s.line,
 	})
+}
+
+func (s *Scanner) scanString() {
+	for s.peek() != '"' && !s.isEnd() {
+		if s.peek() == '\n' {
+			s.line++
+		}
+		s.advance() // Advance through string until closing "
+	}
+
+	if s.isEnd() {
+		s.error("Unterminated string.")
+		return
+	}
+	s.advance()                                                  // Move current past the string's closing "
+	s.addFullToken(tree.STRING, s.source[s.start+1:s.current-1]) // Sets token to string literal not including surrounding ""
+}
+
+func (s *Scanner) isEnd() bool {
+	return s.current >= len(s.source)
 }
 
 func (s *Scanner) error(message string) {
