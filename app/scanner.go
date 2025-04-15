@@ -27,6 +27,25 @@ func NewScanner(source string, stdErr io.Writer) *Scanner {
 	}
 }
 
+var keywords = map[string]tree.TokenType{
+	"and":    tree.AND,
+	"class":  tree.CLASS,
+	"else":   tree.ELSE,
+	"false":  tree.FALSE,
+	"fun":    tree.FUN,
+	"for":    tree.FOR,
+	"if":     tree.IF,
+	"nil":    tree.NIL,
+	"or":     tree.OR,
+	"print":  tree.PRINT,
+	"return": tree.RETURN,
+	"super":  tree.SUPER,
+	"this":   tree.THIS,
+	"true":   tree.TRUE,
+	"var":    tree.VAR,
+	"while":  tree.WHILE,
+}
+
 func (s *Scanner) ScanTokens() {
 	for !s.isEnd() {
 		s.start = s.current
@@ -113,7 +132,11 @@ func (s *Scanner) scanToken() {
 	case '"':
 		s.scanString()
 	default:
-		s.error("Unexpected character: " + string(char))
+		if isAlpha(char) {
+			s.scanIdentifier()
+		} else {
+			s.error("Unexpected character: " + string(char))
+		}
 	}
 }
 
@@ -199,6 +222,18 @@ func (s *Scanner) scanNumber() {
 	s.addFullToken(tree.NUMBER, parsedFloat)
 }
 
+func (s *Scanner) scanIdentifier() {
+	for isAlphaNumeric(s.peek()) {
+		s.advance()
+	}
+	text := s.source[s.start:s.current]
+	tokenType, exists := keywords[text]
+	if !exists {
+		tokenType = tree.IDENTIFIER
+	}
+	s.addToken(tokenType)
+}
+
 func (s *Scanner) isEnd() bool {
 	return s.current >= len(s.source)
 }
@@ -210,4 +245,14 @@ func (s *Scanner) error(message string) {
 
 func isDigit(r rune) bool {
 	return r >= '0' && r <= '9'
+}
+
+func isAlpha(r rune) bool {
+	return (r >= 'a' && r <= 'z') ||
+		(r >= 'A' && r <= 'Z') ||
+		(r == '_')
+}
+
+func isAlphaNumeric(r rune) bool {
+	return isAlpha(r) || isDigit(r)
 }
