@@ -111,8 +111,6 @@ func (p *Parser) primary() Expr {
 		}
 	}
 
-	// This isn't quite right, but need somewhere to stash outputting statements until statements are implemented
-	// if p.match(STRING, NUMBER, PRINT, SUPER, RETURN, FUN, VAR, IF, ELSE, CLASS) {
 	if p.match(STRING, NUMBER) {
 		return LiteralExpr{
 			value: p.previous().Literal,
