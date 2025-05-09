@@ -11,11 +11,13 @@ import (
 func main() {
 	args := os.Args[1:]
 	command := args[0]
+	// Change out command for easy debugging
+	// command := "parse"
 	if command != "tokenize" && command != "parse" {
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
 	}
 
-	if len(args) < 2 {
+	if len(args) < 2 && len(args) > 0 {
 		fmt.Fprintln(os.Stderr, "Usage: ./your_program.sh tokenize <filename>")
 		os.Exit(1)
 	} else if len(args) == 2 {

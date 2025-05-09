@@ -3,6 +3,7 @@ package tree
 import (
 	"fmt"
 	"os"
+	"slices"
 )
 
 type Parser struct {
@@ -79,6 +80,7 @@ func (p *Parser) factor() Expr {
 			right:    right,
 		}
 	}
+	// fmt.Printf("Factor: %v\n", expr)
 	return expr
 }
 
@@ -118,9 +120,9 @@ func (p *Parser) primary() Expr {
 	}
 	if p.match(LEFT_PAREN) {
 		expr := p.expression()
-		err := p.consume(RIGHT_PAREN)
+		_, err := p.consume(RIGHT_PAREN)
 		if err != nil {
-
+			p.error(p.peek(), "Expected ) after (")
 		}
 		return GroupingExpr{
 			expression: expr,
@@ -131,11 +133,9 @@ func (p *Parser) primary() Expr {
 }
 
 func (p *Parser) match(types ...TokenType) bool {
-	for _, tokenType := range types {
-		if p.check(tokenType) {
-			p.advance()
-			return true
-		}
+	if slices.ContainsFunc(types, p.check) {
+		p.advance()
+		return true
 	}
 	return false
 }
@@ -166,11 +166,11 @@ func (p *Parser) previous() Token {
 	return p.tokens[p.current-1]
 }
 
-func (p *Parser) consume(tokenType TokenType) error {
+func (p *Parser) consume(tokenType TokenType) (Token, error) {
 	if p.check(tokenType) {
-		return nil
+		return p.advance(), nil
 	}
-	return fmt.Errorf("expected %v", tokenType)
+	return Token{}, fmt.Errorf("expected %v", tokenType)
 }
 
 func (p *Parser) synchronize() {
@@ -198,3 +198,6 @@ func (p *Parser) error(token Token, message string) {
 	}
 	_, _ = os.Stderr.Write([]byte(fmt.Sprintf("[line %d] Error%s: %s\n", token.Line+1, where, message)))
 }
+
+// Test case: (-66 + 43) * (37 * 76) / (25 + 81)
+// go build && ./app parse (-66 + 43) * (37 * 76) / (25 + 81)
