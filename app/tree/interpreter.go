@@ -30,13 +30,22 @@ func (in *Interpreter) VisitBinaryExpr(expr BinaryExpr) any {
 
 	switch expr.operator.TokenType {
 	case MINUS:
-		in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.operator, left, right)
+		if err != nil {
+			return ""
+		}
 		return left.(float64) - right.(float64)
 	case SLASH:
-		in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.operator, left, right)
+		if err != nil {
+			return ""
+		}
 		return left.(float64) / right.(float64)
 	case STAR:
-		in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.operator, left, right)
+		if err != nil {
+			return ""
+		}
 		return left.(float64) * right.(float64)
 	case PLUS:
 		leftType := reflect.TypeOf(left)
@@ -49,17 +58,30 @@ func (in *Interpreter) VisitBinaryExpr(expr BinaryExpr) any {
 			return left.(string) + right.(string)
 		}
 		in.error(expr.operator, "Operands must be two numbers or two strings.")
+		return ""
 	case GREATER:
-		in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.operator, left, right)
+		if err != nil {
+			return ""
+		}
 		return left.(float64) > right.(float64)
 	case GREATER_EQUAL:
-		in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.operator, left, right)
+		if err != nil {
+			return ""
+		}
 		return left.(float64) >= right.(float64)
 	case LESS:
-		in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.operator, left, right)
+		if err != nil {
+			return ""
+		}
 		return left.(float64) < right.(float64)
 	case LESS_EQUAL:
-		in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.operator, left, right)
+		if err != nil {
+			return ""
+		}
 		return left.(float64) <= right.(float64)
 	case BANG_EQUAL:
 		return !isEqual(left, right)
@@ -108,7 +130,10 @@ func (in *Interpreter) VisitUnaryExpr(expr UnaryExpr) any {
 	right := in.evaluate(expr.right)
 	switch expr.operator.TokenType {
 	case MINUS:
-		in.checkNumberOperand(expr.operator, right)
+		err := in.checkNumberOperand(expr.operator, right)
+		if err != nil {
+			return ""
+		}
 		return -right.(float64)
 	case BANG:
 		return !isTruthy(right)
@@ -129,25 +154,26 @@ func (in *Interpreter) evaluate(expr Expr) any {
 	return expr.Accept(in)
 }
 
-func (in *Interpreter) checkNumberOperand(operator Token, operand any) {
+func (in *Interpreter) checkNumberOperand(operator Token, operand any) error {
 	if _, ok := operand.(float64); ok {
-		return
+		return nil
 	}
-	in.error(operator, "Operand must be a number.")
+	return in.error(operator, "Operand must be a number.")
 }
 
-func (in *Interpreter) checkNumberOperands(operator Token, left any, right any) {
+func (in *Interpreter) checkNumberOperands(operator Token, left any, right any) error {
 	if _, ok := left.(float64); ok {
 		if _, ok := right.(float64); ok {
-			return
+			return nil
 		}
 	}
-	in.error(operator, "Operands must be numbers.")
+	return in.error(operator, "Operands must be numbers.")
 }
 
-func (in *Interpreter) error(token Token, msg string) {
+func (in *Interpreter) error(token Token, msg string) error {
 	in.HadError = true
 	_, _ = in.StdErr.Write([]byte(fmt.Sprintf("[line %d] Error: %s\n", token.Line, msg)))
+	return fmt.Errorf("[line %d] Error: %s\n", token.Line, msg)
 }
 
 func (in *Interpreter) Interpret(expr Expr) {
@@ -180,13 +206,6 @@ func stringify(object any) string {
 		return "nil"
 	}
 	if _, ok := object.(float64); ok {
-		// _, frac := math.Modf(object.(float64))
-		// if frac == 0 {
-		// 	return fmt.Sprintf("%.1f", object)
-		// }
-		// text := fmt.Sprintf("%.2f", object)
-
-		// return text
 		return strconv.FormatFloat(object.(float64), 'f', -1, 64)
 	}
 	return fmt.Sprintf("%v", object)

@@ -98,8 +98,10 @@ func runInterpreter(source string) {
 	interpreter := tree.NewInterpreter(os.Stderr)
 	interpreter.Interpret(expression)
 
-	if scanner.HadError || parser.HadError || interpreter.HadError {
+	if scanner.HadError || parser.HadError {
 		os.Exit(65)
 	}
-
+	if interpreter.HadError {
+		os.Exit(70)
+	}
 }
