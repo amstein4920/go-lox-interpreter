@@ -13,7 +13,7 @@ func main() {
 	command := args[0]
 	// Change out command for easy debugging
 	// command := "parse"
-	if command != "tokenize" && command != "parse" {
+	if command != "tokenize" && command != "parse" && command != "evaluate" {
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
 	}
 
@@ -39,10 +39,13 @@ func runFile(fileName string, command string) error {
 	if err != nil {
 		return err
 	}
-	if command == "tokenize" {
+	switch command {
+	case "tokenize":
 		runTokenizer(string(bytes))
-	} else {
+	case "parse":
 		runParser(string(bytes))
+	default:
+		runInterpreter(string(bytes))
 	}
 	return nil
 }
@@ -85,4 +88,18 @@ func runParser(source string) {
 
 	printer := tree.AstPrinter{}
 	fmt.Println(printer.Print(expression))
+}
+
+func runInterpreter(source string) {
+	scanner := NewScanner(source, os.Stderr)
+	scanner.ScanTokens()
+	parser := tree.NewParser(scanner.Tokens)
+	expression := parser.Parse()
+
+	if scanner.HadError || parser.HadError {
+		os.Exit(65)
+	}
+
+	interpreter := tree.NewInterpreter(os.Stderr)
+	interpreter.Interpret(expression)
 }

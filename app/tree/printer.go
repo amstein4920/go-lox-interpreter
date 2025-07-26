@@ -8,27 +8,27 @@ import (
 type AstPrinter struct{}
 
 // VisitBinaryExpr implements ExprVisitor.
-func (a AstPrinter) VisitBinaryExpr(expr BinaryExpr) string {
+func (a AstPrinter) VisitBinaryExpr(expr BinaryExpr) any {
 	return a.parenthesize(expr.operator.Lexeme, expr.left, expr.right)
 }
 
 // VisitCallExpr implements ExprVisitor.
-func (a AstPrinter) VisitCallExpr(expr CallExpr) string {
+func (a AstPrinter) VisitCallExpr(expr CallExpr) any {
 	panic("unimplemented")
 }
 
 // VisitGetExpr implements ExprVisitor.
-func (a AstPrinter) VisitGetExpr(expr GetExpr) string {
+func (a AstPrinter) VisitGetExpr(expr GetExpr) any {
 	panic("unimplemented")
 }
 
 // VisitGroupingExpr implements ExprVisitor.
-func (a AstPrinter) VisitGroupingExpr(expr GroupingExpr) string {
+func (a AstPrinter) VisitGroupingExpr(expr GroupingExpr) any {
 	return a.parenthesize("group", expr.expression)
 }
 
 // VisitLiteralExpr implements ExprVisitor.
-func (a AstPrinter) VisitLiteralExpr(expr LiteralExpr) string {
+func (a AstPrinter) VisitLiteralExpr(expr LiteralExpr) any {
 	if expr.value == nil {
 		return "nil"
 	}
@@ -41,32 +41,32 @@ func (a AstPrinter) VisitLiteralExpr(expr LiteralExpr) string {
 }
 
 // VisitLogicalExpr implements ExprVisitor.
-func (a AstPrinter) VisitLogicalExpr(expr LogicalExpr) string {
+func (a AstPrinter) VisitLogicalExpr(expr LogicalExpr) any {
 	return a.parenthesize(expr.operator.Lexeme, expr.left, expr.right)
 }
 
 // VisitSetExpr implements ExprVisitor.
-func (a AstPrinter) VisitSetExpr(expr SetExpr) string {
+func (a AstPrinter) VisitSetExpr(expr SetExpr) any {
 	panic("unimplemented")
 }
 
 // VisitSuperExpr implements ExprVisitor.
-func (a AstPrinter) VisitSuperExpr(expr SuperExpr) string {
+func (a AstPrinter) VisitSuperExpr(expr SuperExpr) any {
 	panic("unimplemented")
 }
 
 // VisitThisExpr implements ExprVisitor.
-func (a AstPrinter) VisitThisExpr(expr ThisExpr) string {
+func (a AstPrinter) VisitThisExpr(expr ThisExpr) any {
 	return expr.keyword.Lexeme
 }
 
 // VisitUnaryExpr implements ExprVisitor.
-func (a AstPrinter) VisitUnaryExpr(expr UnaryExpr) string {
+func (a AstPrinter) VisitUnaryExpr(expr UnaryExpr) any {
 	return a.parenthesize(expr.operator.Lexeme, expr.right)
 }
 
 // VisitVariableExpr implements ExprVisitor.
-func (a AstPrinter) VisitVariableExpr(expr VariableExpr) string {
+func (a AstPrinter) VisitVariableExpr(expr VariableExpr) any {
 	return expr.name.Lexeme
 }
 
@@ -74,10 +74,10 @@ func (a AstPrinter) Print(expr Expr) string {
 	return expr.Accept(a).(string)
 }
 
-func (a AstPrinter) VisitAssignExpr(expr AssignExpr) string {
+func (a AstPrinter) VisitAssignExpr(expr AssignExpr) any {
 	return a.parenthesize("= "+expr.name.Lexeme, expr.value)
 }
-func (a AstPrinter) parenthesize(name string, exprs ...Expr) string {
+func (a AstPrinter) parenthesize(name string, exprs ...Expr) any {
 	var b strings.Builder
 	b.WriteString("(" + name)
 	for _, e := range exprs {

@@ -5,18 +5,18 @@ type Expr interface {
 }
 
 type ExprVisitor interface {
-	VisitAssignExpr(expr AssignExpr) string
-	VisitBinaryExpr(expr BinaryExpr) string
-	VisitCallExpr(expr CallExpr) string
-	VisitGetExpr(expr GetExpr) string
-	VisitGroupingExpr(expr GroupingExpr) string
-	VisitLiteralExpr(expr LiteralExpr) string
-	VisitLogicalExpr(expr LogicalExpr) string
-	VisitSetExpr(expr SetExpr) string
-	VisitSuperExpr(expr SuperExpr) string
-	VisitThisExpr(expr ThisExpr) string
-	VisitUnaryExpr(expr UnaryExpr) string
-	VisitVariableExpr(expr VariableExpr) string
+	VisitAssignExpr(expr AssignExpr) any
+	VisitBinaryExpr(expr BinaryExpr) any
+	VisitCallExpr(expr CallExpr) any
+	VisitGetExpr(expr GetExpr) any
+	VisitGroupingExpr(expr GroupingExpr) any
+	VisitLiteralExpr(expr LiteralExpr) any
+	VisitLogicalExpr(expr LogicalExpr) any
+	VisitSetExpr(expr SetExpr) any
+	VisitSuperExpr(expr SuperExpr) any
+	VisitThisExpr(expr ThisExpr) any
+	VisitUnaryExpr(expr UnaryExpr) any
+	VisitVariableExpr(expr VariableExpr) any
 }
 
 type AssignExpr struct {
