@@ -95,11 +95,11 @@ func runInterpreter(source string) {
 	scanner.ScanTokens()
 	parser := tree.NewParser(scanner.Tokens)
 	expression := parser.Parse()
+	interpreter := tree.NewInterpreter(os.Stderr)
+	interpreter.Interpret(expression)
 
-	if scanner.HadError || parser.HadError {
+	if scanner.HadError || parser.HadError || interpreter.HadError {
 		os.Exit(65)
 	}
 
-	interpreter := tree.NewInterpreter(os.Stderr)
-	interpreter.Interpret(expression)
 }
