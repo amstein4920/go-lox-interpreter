@@ -230,7 +230,7 @@ func (in *Interpreter) InterpretExpression(expr Expr) {
 
 func (in *Interpreter) Interpret(stmts []Stmt) {
 	for _, stmt := range stmts {
-		if stmt != nil {
+		if stmt != nil && !in.HadError {
 			in.execute(stmt)
 		}
 	}
