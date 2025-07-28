@@ -18,9 +18,16 @@ func NewParser(tokens []Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() Expr {
-	// Will be added to later with statements
+func (p *Parser) ParseExpression() Expr {
 	return p.expression()
+}
+
+func (p *Parser) ParseStatements() []Stmt {
+	statements := []Stmt{}
+	for !p.isAtEnd() {
+		statements = append(statements, p.statement())
+	}
+	return statements
 }
 
 func (p *Parser) expression() Expr {
@@ -80,7 +87,6 @@ func (p *Parser) factor() Expr {
 			right:    right,
 		}
 	}
-	// fmt.Printf("Factor: %v\n", expr)
 	return expr
 }
 
@@ -132,7 +138,43 @@ func (p *Parser) primary() Expr {
 	return nil
 }
 
+func (p *Parser) statement() Stmt {
+	if p.match(PRINT) {
+		return p.printStatement()
+	}
+	return p.expressionStmt()
+}
+
+func (p *Parser) printStatement() Stmt {
+	if p.tokens[p.current].TokenType != SEMICOLON {
+		value := p.expression()
+		p.consume(SEMICOLON)
+		return PrintStmt{
+			expression: value,
+		}
+	}
+	return nil
+}
+
+func (p *Parser) expressionStmt() Stmt {
+	if p.HadError {
+		for _, token := range p.tokens {
+			if token.TokenType == SEMICOLON {
+				break
+			}
+		}
+		return ExpressionStmt{}
+	}
+
+	value := p.expression()
+	p.consume(SEMICOLON)
+	return ExpressionStmt{
+		expression: value,
+	}
+}
+
 func (p *Parser) match(types ...TokenType) bool {
+	// fmt.Println(p.check(PRINT))
 	if slices.ContainsFunc(types, p.check) {
 		p.advance()
 		return true
@@ -198,6 +240,3 @@ func (p *Parser) error(token Token, message string) {
 	}
 	_, _ = os.Stderr.Write([]byte(fmt.Sprintf("[line %d] Error%s: %s\n", token.Line+1, where, message)))
 }
-
-// Test case: (-66 + 43) * (37 * 76) / (25 + 81)
-// go build && ./app parse (-66 + 43) * (37 * 76) / (25 + 81)

@@ -12,8 +12,8 @@ func main() {
 	args := os.Args[1:]
 	command := args[0]
 	// Change out command for easy debugging
-	// command := "parse"
-	if command != "tokenize" && command != "parse" && command != "evaluate" {
+	// command := "run"
+	if command != "tokenize" && command != "parse" && command != "evaluate" && command != "run" {
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
 	}
 
@@ -44,8 +44,12 @@ func runFile(fileName string, command string) error {
 		runTokenizer(string(bytes))
 	case "parse":
 		runParser(string(bytes))
+	case "evaluate":
+		runEvaluate(string(bytes))
+	case "run":
+		runRun(string(bytes))
 	default:
-		runInterpreter(string(bytes))
+		runRun(string(bytes))
 	}
 	return nil
 }
@@ -55,7 +59,7 @@ func runPrompt() error {
 	fmt.Print("> ")
 	for ioScanner.Scan() {
 		line := ioScanner.Text()
-		runParser(line)
+		runRun(line)
 		fmt.Print("> ")
 	}
 	if err := ioScanner.Err(); err != nil {
@@ -80,7 +84,7 @@ func runParser(source string) {
 	scanner := NewScanner(source, os.Stderr)
 	scanner.ScanTokens()
 	parser := tree.NewParser(scanner.Tokens)
-	expression := parser.Parse()
+	expression := parser.ParseExpression()
 
 	if scanner.HadError || parser.HadError {
 		os.Exit(65)
@@ -90,17 +94,41 @@ func runParser(source string) {
 	fmt.Println(printer.Print(expression))
 }
 
-func runInterpreter(source string) {
+func runEvaluate(source string) {
 	scanner := NewScanner(source, os.Stderr)
 	scanner.ScanTokens()
-	parser := tree.NewParser(scanner.Tokens)
-	expression := parser.Parse()
-	interpreter := tree.NewInterpreter(os.Stderr)
-	interpreter.Interpret(expression)
-
-	if scanner.HadError || parser.HadError {
+	if scanner.HadError {
 		os.Exit(65)
 	}
+
+	parser := tree.NewParser(scanner.Tokens)
+	expression := parser.ParseExpression()
+	if parser.HadError {
+		os.Exit(65)
+	}
+
+	interpreter := tree.NewInterpreter(os.Stderr)
+	interpreter.InterpretExpression(expression)
+	if interpreter.HadError {
+		os.Exit(70)
+	}
+}
+
+func runRun(source string) {
+	scanner := NewScanner(source, os.Stderr)
+	scanner.ScanTokens()
+	if scanner.HadError {
+		os.Exit(65)
+	}
+
+	parser := tree.NewParser(scanner.Tokens)
+	statements := parser.ParseStatements()
+	if parser.HadError {
+		os.Exit(65)
+	}
+
+	interpreter := tree.NewInterpreter(os.Stderr)
+	interpreter.Interpret(statements)
 	if interpreter.HadError {
 		os.Exit(70)
 	}

@@ -12,6 +12,41 @@ type Interpreter struct {
 	HadError bool
 }
 
+// VisitBlockStmt implements StmtVisitor.
+func (in *Interpreter) VisitBlockStmt(stmt BlockStmt) {
+	panic("unimplemented")
+}
+
+// VisitClassStmt implements StmtVisitor.
+func (in *Interpreter) VisitClassStmt(stmt ClassStmt) {
+	panic("unimplemented")
+}
+
+// VisitFunctionStmt implements StmtVisitor.
+func (in *Interpreter) VisitFunctionStmt(stmt FunctionStmt) {
+	panic("unimplemented")
+}
+
+// VisitIfStmt implements StmtVisitor.
+func (in *Interpreter) VisitIfStmt(stmt IfStmt) {
+	panic("unimplemented")
+}
+
+// VisitReturnStmt implements StmtVisitor.
+func (in *Interpreter) VisitReturnStmt(stmt ReturnStmt) {
+	panic("unimplemented")
+}
+
+// VisitVariableStmt implements StmtVisitor.
+func (in *Interpreter) VisitVariableStmt(stmt VariableStmt) {
+	panic("unimplemented")
+}
+
+// VisitWhileStmt implements StmtVisitor.
+func (in *Interpreter) VisitWhileStmt(stmt WhileStmt) {
+	panic("unimplemented")
+}
+
 func NewInterpreter(stdErr io.Writer) *Interpreter {
 	return &Interpreter{
 		StdErr: stdErr,
@@ -150,6 +185,18 @@ func (in *Interpreter) VisitLiteralExpr(expr LiteralExpr) any {
 	return expr.value
 }
 
+func (in *Interpreter) VisitExpressionStmt(stmt ExpressionStmt) {
+	val := in.evaluate(stmt.expression)
+	println(val)
+}
+
+func (in *Interpreter) VisitPrintStmt(stmt PrintStmt) {
+	if stmt.expression != nil {
+		value := in.evaluate(stmt.expression)
+		fmt.Println(stringify(value))
+	}
+}
+
 func (in *Interpreter) evaluate(expr Expr) any {
 	return expr.Accept(in)
 }
@@ -176,9 +223,21 @@ func (in *Interpreter) error(token Token, msg string) error {
 	return fmt.Errorf("[line %d] Error: %s\n", token.Line, msg)
 }
 
-func (in *Interpreter) Interpret(expr Expr) {
+func (in *Interpreter) InterpretExpression(expr Expr) {
 	value := in.evaluate(expr)
 	fmt.Println(stringify(value))
+}
+
+func (in *Interpreter) Interpret(stmts []Stmt) {
+	for _, stmt := range stmts {
+		if stmt != nil {
+			in.execute(stmt)
+		}
+	}
+}
+
+func (in *Interpreter) execute(stmt Stmt) {
+	stmt.Accept(in)
 }
 
 func isTruthy(obj any) bool {

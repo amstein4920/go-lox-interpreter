@@ -1,27 +1,27 @@
 package tree
 
 type Stmt interface {
-	Accept(visitor *StmtVisitor)
+	Accept(visitor StmtVisitor)
 }
 
 type StmtVisitor interface {
-	VisitBlockStmt(stmt *BlockStmt) any
-	VisitClassStmt(stmt *ClassStmt) any
-	VisitExpressionStmt(stmt *ExpressionStmt) any
-	VisitFunctionStmt(stmt *FunctionStmt) any
-	VisitIfStmt(stmt *IfStmt) any
-	VisitPrintStmt(stmt *PrintStmt) any
-	VisitReturnStmt(stmt *ReturnStmt) any
-	VisitVariableStmt(stmt *VariableStmt) any
-	VisitWhileStmt(stmt *WhileStmt) any
+	VisitBlockStmt(stmt BlockStmt)
+	VisitClassStmt(stmt ClassStmt)
+	VisitExpressionStmt(stmt ExpressionStmt)
+	VisitFunctionStmt(stmt FunctionStmt)
+	VisitIfStmt(stmt IfStmt)
+	VisitPrintStmt(stmt PrintStmt)
+	VisitReturnStmt(stmt ReturnStmt)
+	VisitVariableStmt(stmt VariableStmt)
+	VisitWhileStmt(stmt WhileStmt)
 }
 
 type BlockStmt struct {
 	statements []Stmt
 }
 
-func (s *BlockStmt) Accept(v StmtVisitor) any {
-	return v.VisitBlockStmt(s)
+func (s BlockStmt) Accept(v StmtVisitor) {
+	v.VisitBlockStmt(s)
 }
 
 type ClassStmt struct {
@@ -30,16 +30,16 @@ type ClassStmt struct {
 	methods    []FunctionStmt
 }
 
-func (s *ClassStmt) Accept(v StmtVisitor) any {
-	return v.VisitClassStmt(s)
+func (s ClassStmt) Accept(v StmtVisitor) {
+	v.VisitClassStmt(s)
 }
 
 type ExpressionStmt struct {
 	expression Expr
 }
 
-func (s *ExpressionStmt) Accept(v StmtVisitor) any {
-	return v.VisitExpressionStmt(s)
+func (s ExpressionStmt) Accept(v StmtVisitor) {
+	v.VisitExpressionStmt(s)
 }
 
 type FunctionStmt struct {
@@ -48,8 +48,8 @@ type FunctionStmt struct {
 	body   []Stmt
 }
 
-func (s *FunctionStmt) Accept(v StmtVisitor) any {
-	return v.VisitFunctionStmt(s)
+func (s FunctionStmt) Accept(v StmtVisitor) {
+	v.VisitFunctionStmt(s)
 }
 
 type IfStmt struct {
@@ -58,16 +58,16 @@ type IfStmt struct {
 	elseBranch Stmt
 }
 
-func (s *IfStmt) Accept(v StmtVisitor) any {
-	return v.VisitIfStmt(s)
+func (s IfStmt) Accept(v StmtVisitor) {
+	v.VisitIfStmt(s)
 }
 
 type PrintStmt struct {
 	expression Expr
 }
 
-func (s *PrintStmt) Accept(v StmtVisitor) any {
-	return v.VisitPrintStmt(s)
+func (s PrintStmt) Accept(v StmtVisitor) {
+	v.VisitPrintStmt(s)
 }
 
 type ReturnStmt struct {
@@ -75,8 +75,8 @@ type ReturnStmt struct {
 	value   Expr
 }
 
-func (s *ReturnStmt) Accept(v StmtVisitor) any {
-	return v.VisitReturnStmt(s)
+func (s ReturnStmt) Accept(v StmtVisitor) {
+	v.VisitReturnStmt(s)
 }
 
 type VariableStmt struct {
@@ -84,8 +84,8 @@ type VariableStmt struct {
 	initializer Expr
 }
 
-func (s *VariableStmt) Accept(v StmtVisitor) any {
-	return v.VisitVariableStmt(s)
+func (s VariableStmt) Accept(v StmtVisitor) {
+	v.VisitVariableStmt(s)
 }
 
 type WhileStmt struct {
@@ -93,6 +93,6 @@ type WhileStmt struct {
 	body      Stmt
 }
 
-func (s *WhileStmt) Accept(v StmtVisitor) any {
-	return v.VisitWhileStmt(s)
+func (s WhileStmt) Accept(v StmtVisitor) {
+	v.VisitWhileStmt(s)
 }
