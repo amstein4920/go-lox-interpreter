@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"slices"
+
+	. "github.com/codecrafters-io/interpreter-starter-go/app/definitions"
 )
 
 type Parser struct {
@@ -25,13 +27,59 @@ func (p *Parser) ParseExpression() Expr {
 func (p *Parser) ParseStatements() []Stmt {
 	statements := []Stmt{}
 	for !p.isAtEnd() {
-		statements = append(statements, p.statement())
+		statements = append(statements, p.declaration())
 	}
 	return statements
 }
 
+func (p *Parser) declaration() Stmt {
+	if p.match(VAR) {
+		return p.varDeclaration()
+	}
+	stmt := p.statement()
+	if p.HadError {
+		p.synchronize()
+		return nil
+	}
+	return stmt
+}
+
+func (p *Parser) varDeclaration() Stmt {
+	name, err := p.consume(IDENTIFIER)
+	if err != nil {
+		p.error(p.peek(), "Expected variable name.")
+	}
+
+	var initializer Expr
+	if p.match(EQUAL) {
+		initializer = p.expression()
+	}
+
+	p.consume(SEMICOLON)
+	return VariableStmt{
+		Name:        name,
+		Initializer: initializer,
+	}
+}
+
 func (p *Parser) expression() Expr {
-	return p.equality()
+	return p.assignment()
+}
+
+func (p *Parser) assignment() Expr {
+	expr := p.equality()
+	if p.match(EQUAL) {
+		equals := p.previous()
+		value := p.assignment()
+		if varExpr, isVarExpr := expr.(VariableExpr); isVarExpr {
+			return AssignExpr{
+				Name:  varExpr.Name,
+				Value: value,
+			}
+		}
+		p.error(equals, "Invalid assignment target.")
+	}
+	return expr
 }
 
 func (p *Parser) equality() Expr {
@@ -40,9 +88,9 @@ func (p *Parser) equality() Expr {
 		operator := p.previous()
 		right := p.comparison()
 		expr = BinaryExpr{
-			left:     expr,
-			operator: operator,
-			right:    right,
+			Left:     expr,
+			Operator: operator,
+			Right:    right,
 		}
 	}
 	return expr
@@ -54,9 +102,9 @@ func (p *Parser) comparison() Expr {
 		operator := p.previous()
 		right := p.term()
 		expr = BinaryExpr{
-			left:     expr,
-			operator: operator,
-			right:    right,
+			Left:     expr,
+			Operator: operator,
+			Right:    right,
 		}
 	}
 	return expr
@@ -68,9 +116,9 @@ func (p *Parser) term() Expr {
 		operator := p.previous()
 		right := p.factor()
 		expr = BinaryExpr{
-			left:     expr,
-			operator: operator,
-			right:    right,
+			Left:     expr,
+			Operator: operator,
+			Right:    right,
 		}
 	}
 	return expr
@@ -82,9 +130,9 @@ func (p *Parser) factor() Expr {
 		operator := p.previous()
 		right := p.unary()
 		expr = BinaryExpr{
-			left:     expr,
-			operator: operator,
-			right:    right,
+			Left:     expr,
+			Operator: operator,
+			Right:    right,
 		}
 	}
 	return expr
@@ -95,8 +143,8 @@ func (p *Parser) unary() Expr {
 		operator := p.previous()
 		right := p.unary()
 		return UnaryExpr{
-			operator: operator,
-			right:    right,
+			Operator: operator,
+			Right:    right,
 		}
 	}
 	return p.primary()
@@ -105,23 +153,23 @@ func (p *Parser) unary() Expr {
 func (p *Parser) primary() Expr {
 	if p.match(TRUE) {
 		return LiteralExpr{
-			value: true,
+			Value: true,
 		}
 	}
 	if p.match(FALSE) {
 		return LiteralExpr{
-			value: false,
+			Value: false,
 		}
 	}
 	if p.match(NIL) {
 		return LiteralExpr{
-			value: nil,
+			Value: nil,
 		}
 	}
 
 	if p.match(STRING, NUMBER) {
 		return LiteralExpr{
-			value: p.previous().Literal,
+			Value: p.previous().Literal,
 		}
 	}
 	if p.match(LEFT_PAREN) {
@@ -131,9 +179,15 @@ func (p *Parser) primary() Expr {
 			p.error(p.peek(), "Expected ) after (")
 		}
 		return GroupingExpr{
-			expression: expr,
+			Expression: expr,
 		}
 	}
+	if p.match(IDENTIFIER) {
+		return VariableExpr{
+			Name: p.previous(),
+		}
+	}
+
 	p.error(p.peek(), "Expect Expression")
 	return nil
 }
@@ -150,7 +204,7 @@ func (p *Parser) printStatement() Stmt {
 		value := p.expression()
 		p.consume(SEMICOLON)
 		return PrintStmt{
-			expression: value,
+			Expression: value,
 		}
 	}
 	return nil
@@ -169,12 +223,11 @@ func (p *Parser) expressionStmt() Stmt {
 	value := p.expression()
 	p.consume(SEMICOLON)
 	return ExpressionStmt{
-		expression: value,
+		Expression: value,
 	}
 }
 
 func (p *Parser) match(types ...TokenType) bool {
-	// fmt.Println(p.check(PRINT))
 	if slices.ContainsFunc(types, p.check) {
 		p.advance()
 		return true

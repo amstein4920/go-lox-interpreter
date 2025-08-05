@@ -5,79 +5,91 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+
+	"github.com/codecrafters-io/interpreter-starter-go/app/definitions"
+	. "github.com/codecrafters-io/interpreter-starter-go/app/definitions"
 )
 
 type Interpreter struct {
 	StdErr   io.Writer
 	HadError bool
+	Env      Environment
 }
 
 // VisitBlockStmt implements StmtVisitor.
-func (in *Interpreter) VisitBlockStmt(stmt BlockStmt) {
+func (in *Interpreter) VisitBlockStmt(stmt definitions.BlockStmt) {
 	panic("unimplemented")
 }
 
 // VisitClassStmt implements StmtVisitor.
-func (in *Interpreter) VisitClassStmt(stmt ClassStmt) {
+func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
 	panic("unimplemented")
 }
 
 // VisitFunctionStmt implements StmtVisitor.
-func (in *Interpreter) VisitFunctionStmt(stmt FunctionStmt) {
+func (in *Interpreter) VisitFunctionStmt(stmt definitions.FunctionStmt) {
 	panic("unimplemented")
 }
 
 // VisitIfStmt implements StmtVisitor.
-func (in *Interpreter) VisitIfStmt(stmt IfStmt) {
+func (in *Interpreter) VisitIfStmt(stmt definitions.IfStmt) {
 	panic("unimplemented")
 }
 
 // VisitReturnStmt implements StmtVisitor.
-func (in *Interpreter) VisitReturnStmt(stmt ReturnStmt) {
+func (in *Interpreter) VisitReturnStmt(stmt definitions.ReturnStmt) {
 	panic("unimplemented")
 }
 
 // VisitVariableStmt implements StmtVisitor.
-func (in *Interpreter) VisitVariableStmt(stmt VariableStmt) {
-	panic("unimplemented")
+func (in *Interpreter) VisitVariableStmt(stmt definitions.VariableStmt) {
+	var value any = nil
+	if stmt.Initializer != nil {
+		value = in.evaluate(stmt.Initializer)
+	}
+	in.Env.Define(stmt.Name.Lexeme, value)
 }
 
 // VisitWhileStmt implements StmtVisitor.
-func (in *Interpreter) VisitWhileStmt(stmt WhileStmt) {
+func (in *Interpreter) VisitWhileStmt(stmt definitions.WhileStmt) {
 	panic("unimplemented")
 }
 
 func NewInterpreter(stdErr io.Writer) *Interpreter {
+
 	return &Interpreter{
 		StdErr: stdErr,
+		Env:    definitions.NewEnvironment(),
 	}
 }
 
 // VisitAssignExpr implements ExprVisitor.
-func (in *Interpreter) VisitAssignExpr(expr AssignExpr) any {
-	panic("unimplemented")
+func (in *Interpreter) VisitAssignExpr(expr definitions.AssignExpr) any {
+	value := in.evaluate(expr.Value)
+	in.Env.Assign(expr.Name, value)
+	return value
 }
 
 // VisitBinaryExpr implements ExprVisitor.
-func (in *Interpreter) VisitBinaryExpr(expr BinaryExpr) any {
-	left := in.evaluate(expr.left)
-	right := in.evaluate(expr.right)
+func (in *Interpreter) VisitBinaryExpr(expr definitions.BinaryExpr) any {
+	left := in.evaluate(expr.Left)
+	right := in.evaluate(expr.Right)
 
-	switch expr.operator.TokenType {
-	case MINUS:
-		err := in.checkNumberOperands(expr.operator, left, right)
+	switch expr.Operator.TokenType {
+	case definitions.MINUS:
+		err := in.checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
 			return ""
 		}
 		return left.(float64) - right.(float64)
 	case SLASH:
-		err := in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
 			return ""
 		}
 		return left.(float64) / right.(float64)
 	case STAR:
-		err := in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
 			return ""
 		}
@@ -92,28 +104,28 @@ func (in *Interpreter) VisitBinaryExpr(expr BinaryExpr) any {
 		if leftType.Kind() == reflect.String && rightType.Kind() == reflect.String {
 			return left.(string) + right.(string)
 		}
-		in.error(expr.operator, "Operands must be two numbers or two strings.")
+		in.error(expr.Operator, "Operands must be two numbers or two strings.")
 		return ""
 	case GREATER:
-		err := in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
 			return ""
 		}
 		return left.(float64) > right.(float64)
 	case GREATER_EQUAL:
-		err := in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
 			return ""
 		}
 		return left.(float64) >= right.(float64)
 	case LESS:
-		err := in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
 			return ""
 		}
 		return left.(float64) < right.(float64)
 	case LESS_EQUAL:
-		err := in.checkNumberOperands(expr.operator, left, right)
+		err := in.checkNumberOperands(expr.Operator, left, right)
 		if err != nil {
 			return ""
 		}
@@ -127,45 +139,45 @@ func (in *Interpreter) VisitBinaryExpr(expr BinaryExpr) any {
 }
 
 // VisitCallExpr implements ExprVisitor.
-func (in *Interpreter) VisitCallExpr(expr CallExpr) any {
+func (in *Interpreter) VisitCallExpr(expr definitions.CallExpr) any {
 	panic("unimplemented")
 }
 
 // VisitGetExpr implements ExprVisitor.
-func (in *Interpreter) VisitGetExpr(expr GetExpr) any {
+func (in *Interpreter) VisitGetExpr(expr definitions.GetExpr) any {
 	panic("unimplemented")
 }
 
 // VisitGroupingExpr implements ExprVisitor.
-func (in *Interpreter) VisitGroupingExpr(expr GroupingExpr) any {
-	return in.evaluate(expr.expression)
+func (in *Interpreter) VisitGroupingExpr(expr definitions.GroupingExpr) any {
+	return in.evaluate(expr.Expression)
 }
 
 // VisitLogicalExpr implements ExprVisitor.
-func (in *Interpreter) VisitLogicalExpr(expr LogicalExpr) any {
+func (in *Interpreter) VisitLogicalExpr(expr definitions.LogicalExpr) any {
 	panic("unimplemented")
 }
 
 // VisitSetExpr implements ExprVisitor.
-func (in *Interpreter) VisitSetExpr(expr SetExpr) any {
+func (in *Interpreter) VisitSetExpr(expr definitions.SetExpr) any {
 	panic("unimplemented")
 }
 
 // VisitSuperExpr implements ExprVisitor.
-func (in *Interpreter) VisitSuperExpr(expr SuperExpr) any {
+func (in *Interpreter) VisitSuperExpr(expr definitions.SuperExpr) any {
 	panic("unimplemented")
 }
 
 // VisitThisExpr implements ExprVisitor.
-func (in *Interpreter) VisitThisExpr(expr ThisExpr) any {
+func (in *Interpreter) VisitThisExpr(expr definitions.ThisExpr) any {
 	panic("unimplemented")
 }
 
-func (in *Interpreter) VisitUnaryExpr(expr UnaryExpr) any {
-	right := in.evaluate(expr.right)
-	switch expr.operator.TokenType {
+func (in *Interpreter) VisitUnaryExpr(expr definitions.UnaryExpr) any {
+	right := in.evaluate(expr.Right)
+	switch expr.Operator.TokenType {
 	case MINUS:
-		err := in.checkNumberOperand(expr.operator, right)
+		err := in.checkNumberOperand(expr.Operator, right)
 		if err != nil {
 			return ""
 		}
@@ -177,38 +189,42 @@ func (in *Interpreter) VisitUnaryExpr(expr UnaryExpr) any {
 }
 
 // VisitVariableExpr implements ExprVisitor.
-func (in *Interpreter) VisitVariableExpr(expr VariableExpr) any {
-	panic("unimplemented")
+func (in *Interpreter) VisitVariableExpr(expr definitions.VariableExpr) any {
+	value, err := in.Env.Get(expr.Name)
+	if err != nil {
+		in.error(expr.Name, err.Error())
+	}
+	return value
 }
 
-func (in *Interpreter) VisitLiteralExpr(expr LiteralExpr) any {
-	return expr.value
+func (in *Interpreter) VisitLiteralExpr(expr definitions.LiteralExpr) any {
+	return expr.Value
 }
 
-func (in *Interpreter) VisitExpressionStmt(stmt ExpressionStmt) {
-	val := in.evaluate(stmt.expression)
+func (in *Interpreter) VisitExpressionStmt(stmt definitions.ExpressionStmt) {
+	val := in.evaluate(stmt.Expression)
 	println(val)
 }
 
-func (in *Interpreter) VisitPrintStmt(stmt PrintStmt) {
-	if stmt.expression != nil {
-		value := in.evaluate(stmt.expression)
+func (in *Interpreter) VisitPrintStmt(stmt definitions.PrintStmt) {
+	if stmt.Expression != nil {
+		value := in.evaluate(stmt.Expression)
 		fmt.Println(stringify(value))
 	}
 }
 
-func (in *Interpreter) evaluate(expr Expr) any {
+func (in *Interpreter) evaluate(expr definitions.Expr) any {
 	return expr.Accept(in)
 }
 
-func (in *Interpreter) checkNumberOperand(operator Token, operand any) error {
+func (in *Interpreter) checkNumberOperand(operator definitions.Token, operand any) error {
 	if _, ok := operand.(float64); ok {
 		return nil
 	}
 	return in.error(operator, "Operand must be a number.")
 }
 
-func (in *Interpreter) checkNumberOperands(operator Token, left any, right any) error {
+func (in *Interpreter) checkNumberOperands(operator definitions.Token, left any, right any) error {
 	if _, ok := left.(float64); ok {
 		if _, ok := right.(float64); ok {
 			return nil
@@ -217,18 +233,18 @@ func (in *Interpreter) checkNumberOperands(operator Token, left any, right any) 
 	return in.error(operator, "Operands must be numbers.")
 }
 
-func (in *Interpreter) error(token Token, msg string) error {
+func (in *Interpreter) error(token definitions.Token, msg string) error {
 	in.HadError = true
 	_, _ = in.StdErr.Write([]byte(fmt.Sprintf("[line %d] Error: %s\n", token.Line, msg)))
 	return fmt.Errorf("[line %d] Error: %s\n", token.Line, msg)
 }
 
-func (in *Interpreter) InterpretExpression(expr Expr) {
+func (in *Interpreter) InterpretExpression(expr definitions.Expr) {
 	value := in.evaluate(expr)
 	fmt.Println(stringify(value))
 }
 
-func (in *Interpreter) Interpret(stmts []Stmt) {
+func (in *Interpreter) Interpret(stmts []definitions.Stmt) {
 	for _, stmt := range stmts {
 		if stmt != nil && !in.HadError {
 			in.execute(stmt)
@@ -236,7 +252,7 @@ func (in *Interpreter) Interpret(stmts []Stmt) {
 	}
 }
 
-func (in *Interpreter) execute(stmt Stmt) {
+func (in *Interpreter) execute(stmt definitions.Stmt) {
 	stmt.Accept(in)
 }
 

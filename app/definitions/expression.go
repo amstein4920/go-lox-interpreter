@@ -1,4 +1,4 @@
-package tree
+package definitions
 
 type Expr interface {
 	Accept(visitor ExprVisitor) any
@@ -20,8 +20,8 @@ type ExprVisitor interface {
 }
 
 type AssignExpr struct {
-	name  Token
-	value Expr
+	Name  Token
+	Value Expr
 }
 
 func (e AssignExpr) Accept(v ExprVisitor) any {
@@ -29,9 +29,9 @@ func (e AssignExpr) Accept(v ExprVisitor) any {
 }
 
 type BinaryExpr struct {
-	left     Expr
-	operator Token
-	right    Expr
+	Left     Expr
+	Operator Token
+	Right    Expr
 }
 
 func (e BinaryExpr) Accept(v ExprVisitor) any {
@@ -58,7 +58,7 @@ func (e GetExpr) Accept(v ExprVisitor) any {
 }
 
 type GroupingExpr struct {
-	expression Expr
+	Expression Expr
 }
 
 func (e GroupingExpr) Accept(v ExprVisitor) any {
@@ -66,7 +66,7 @@ func (e GroupingExpr) Accept(v ExprVisitor) any {
 }
 
 type LiteralExpr struct {
-	value any
+	Value any
 }
 
 func (e LiteralExpr) Accept(v ExprVisitor) any {
@@ -74,9 +74,9 @@ func (e LiteralExpr) Accept(v ExprVisitor) any {
 }
 
 type LogicalExpr struct {
-	left     Expr
-	operator Token
-	right    Expr
+	Left     Expr
+	Operator Token
+	Right    Expr
 }
 
 func (e LogicalExpr) Accept(v ExprVisitor) any {
@@ -103,7 +103,7 @@ func (e SuperExpr) Accept(v ExprVisitor) any {
 }
 
 type ThisExpr struct {
-	keyword Token
+	Keyword Token
 }
 
 func (e ThisExpr) Accept(v ExprVisitor) any {
@@ -111,8 +111,8 @@ func (e ThisExpr) Accept(v ExprVisitor) any {
 }
 
 type UnaryExpr struct {
-	operator Token
-	right    Expr
+	Operator Token
+	Right    Expr
 }
 
 func (e UnaryExpr) Accept(v ExprVisitor) any {
@@ -120,7 +120,7 @@ func (e UnaryExpr) Accept(v ExprVisitor) any {
 }
 
 type VariableExpr struct {
-	name Token
+	Name Token
 }
 
 func (e VariableExpr) Accept(v ExprVisitor) any {

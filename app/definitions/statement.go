@@ -1,4 +1,4 @@
-package tree
+package definitions
 
 type Stmt interface {
 	Accept(visitor StmtVisitor)
@@ -35,7 +35,7 @@ func (s ClassStmt) Accept(v StmtVisitor) {
 }
 
 type ExpressionStmt struct {
-	expression Expr
+	Expression Expr
 }
 
 func (s ExpressionStmt) Accept(v StmtVisitor) {
@@ -63,7 +63,7 @@ func (s IfStmt) Accept(v StmtVisitor) {
 }
 
 type PrintStmt struct {
-	expression Expr
+	Expression Expr
 }
 
 func (s PrintStmt) Accept(v StmtVisitor) {
@@ -80,8 +80,8 @@ func (s ReturnStmt) Accept(v StmtVisitor) {
 }
 
 type VariableStmt struct {
-	name        Token
-	initializer Expr
+	Name        Token
+	Initializer Expr
 }
 
 func (s VariableStmt) Accept(v StmtVisitor) {

@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/codecrafters-io/interpreter-starter-go/app/tree"
+	. "github.com/codecrafters-io/interpreter-starter-go/app/definitions"
 )
 
 type Scanner struct {
@@ -14,7 +14,7 @@ type Scanner struct {
 	start    int
 	current  int
 	line     int
-	Tokens   []tree.Token
+	Tokens   []Token
 	StdErr   io.Writer
 	HadError bool
 }
@@ -27,23 +27,23 @@ func NewScanner(source string, stdErr io.Writer) *Scanner {
 	}
 }
 
-var keywords = map[string]tree.TokenType{
-	"and":    tree.AND,
-	"class":  tree.CLASS,
-	"else":   tree.ELSE,
-	"false":  tree.FALSE,
-	"fun":    tree.FUN,
-	"for":    tree.FOR,
-	"if":     tree.IF,
-	"nil":    tree.NIL,
-	"or":     tree.OR,
-	"print":  tree.PRINT,
-	"return": tree.RETURN,
-	"super":  tree.SUPER,
-	"this":   tree.THIS,
-	"true":   tree.TRUE,
-	"var":    tree.VAR,
-	"while":  tree.WHILE,
+var keywords = map[string]TokenType{
+	"and":    AND,
+	"class":  CLASS,
+	"else":   ELSE,
+	"false":  FALSE,
+	"fun":    FUN,
+	"for":    FOR,
+	"if":     IF,
+	"nil":    NIL,
+	"or":     OR,
+	"print":  PRINT,
+	"return": RETURN,
+	"super":  SUPER,
+	"this":   THIS,
+	"true":   TRUE,
+	"var":    VAR,
+	"while":  WHILE,
 }
 
 func (s *Scanner) ScanTokens() {
@@ -51,8 +51,8 @@ func (s *Scanner) ScanTokens() {
 		s.start = s.current
 		s.scanToken()
 	}
-	s.Tokens = append(s.Tokens, tree.Token{
-		TokenType: tree.EOF,
+	s.Tokens = append(s.Tokens, Token{
+		TokenType: EOF,
 		Lexeme:    "",
 		Literal:   nil,
 		Line:      s.line,
@@ -63,63 +63,63 @@ func (s *Scanner) scanToken() {
 	char := s.advance()
 	switch char {
 	case '(':
-		s.addToken(tree.LEFT_PAREN)
+		s.addToken(LEFT_PAREN)
 	case ')':
-		s.addToken(tree.RIGHT_PAREN)
+		s.addToken(RIGHT_PAREN)
 	case '{':
-		s.addToken(tree.LEFT_BRACE)
+		s.addToken(LEFT_BRACE)
 	case '}':
-		s.addToken(tree.RIGHT_BRACE)
+		s.addToken(RIGHT_BRACE)
 	case ',':
-		s.addToken(tree.COMMA)
+		s.addToken(COMMA)
 	case '.':
-		s.addToken(tree.DOT)
+		s.addToken(DOT)
 	case '-':
-		s.addToken(tree.MINUS)
+		s.addToken(MINUS)
 	case '+':
-		s.addToken(tree.PLUS)
+		s.addToken(PLUS)
 	case ';':
-		s.addToken(tree.SEMICOLON)
+		s.addToken(SEMICOLON)
 	case '/':
 		if s.match('/') {
 			for s.peek() != '\n' && !s.isEnd() {
 				s.advance()
 			}
 		} else {
-			s.addToken(tree.SLASH)
+			s.addToken(SLASH)
 		}
 	case '*':
-		s.addToken(tree.STAR)
+		s.addToken(STAR)
 	case '!':
-		var tokenType tree.TokenType
+		var tokenType TokenType
 		if s.match('=') {
-			tokenType = tree.BANG_EQUAL
+			tokenType = BANG_EQUAL
 		} else {
-			tokenType = tree.BANG
+			tokenType = BANG
 		}
 		s.addToken(tokenType)
 	case '=':
-		var tokenType tree.TokenType
+		var tokenType TokenType
 		if s.match('=') {
-			tokenType = tree.EQUAL_EQUAL
+			tokenType = EQUAL_EQUAL
 		} else {
-			tokenType = tree.EQUAL
+			tokenType = EQUAL
 		}
 		s.addToken(tokenType)
 	case '>':
-		var tokenType tree.TokenType
+		var tokenType TokenType
 		if s.match('=') {
-			tokenType = tree.GREATER_EQUAL
+			tokenType = GREATER_EQUAL
 		} else {
-			tokenType = tree.GREATER
+			tokenType = GREATER
 		}
 		s.addToken(tokenType)
 	case '<':
-		var tokenType tree.TokenType
+		var tokenType TokenType
 		if s.match('=') {
-			tokenType = tree.LESS_EQUAL
+			tokenType = LESS_EQUAL
 		} else {
-			tokenType = tree.LESS
+			tokenType = LESS
 		}
 		s.addToken(tokenType)
 	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
@@ -171,13 +171,13 @@ func (s *Scanner) peekSecond() rune {
 	return rune(s.source[s.current+1])
 }
 
-func (s *Scanner) addToken(tokenType tree.TokenType) {
+func (s *Scanner) addToken(tokenType TokenType) {
 	s.addFullToken(tokenType, nil)
 }
 
-func (s *Scanner) addFullToken(tokenType tree.TokenType, literal any) {
+func (s *Scanner) addFullToken(tokenType TokenType, literal any) {
 	text := s.source[s.start:s.current]
-	s.Tokens = append(s.Tokens, tree.Token{
+	s.Tokens = append(s.Tokens, Token{
 		TokenType: tokenType,
 		Lexeme:    text,
 		Literal:   literal,
@@ -197,8 +197,8 @@ func (s *Scanner) scanString() {
 		s.error("Unterminated string.")
 		return
 	}
-	s.advance()                                                  // Move current past the string's closing "
-	s.addFullToken(tree.STRING, s.source[s.start+1:s.current-1]) // Sets token to string literal not including surrounding ""
+	s.advance()                                             // Move current past the string's closing "
+	s.addFullToken(STRING, s.source[s.start+1:s.current-1]) // Sets token to string literal not including surrounding ""
 }
 
 func (s *Scanner) scanNumber() {
@@ -219,7 +219,7 @@ func (s *Scanner) scanNumber() {
 		fmt.Fprintf(os.Stderr, "Error parsing float vlaue: %v\n", err)
 		os.Exit(1)
 	}
-	s.addFullToken(tree.NUMBER, parsedFloat)
+	s.addFullToken(NUMBER, parsedFloat)
 }
 
 func (s *Scanner) scanIdentifier() {
@@ -229,7 +229,7 @@ func (s *Scanner) scanIdentifier() {
 	text := s.source[s.start:s.current]
 	tokenType, exists := keywords[text]
 	if !exists {
-		tokenType = tree.IDENTIFIER
+		tokenType = IDENTIFIER
 	}
 	s.addToken(tokenType)
 }
