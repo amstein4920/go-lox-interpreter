@@ -98,10 +98,10 @@ func (in *Interpreter) VisitBinaryExpr(expr definitions.BinaryExpr) any {
 		leftType := reflect.TypeOf(left)
 		rightType := reflect.TypeOf(right)
 
-		if leftType.Kind() == reflect.Float64 && rightType.Kind() == reflect.Float64 {
+		if (leftType != nil && leftType.Kind() == reflect.Float64) && (rightType != nil && rightType.Kind() == reflect.Float64) {
 			return left.(float64) + right.(float64)
 		}
-		if leftType.Kind() == reflect.String && rightType.Kind() == reflect.String {
+		if (leftType != nil && leftType.Kind() == reflect.String) && (rightType != nil && rightType.Kind() == reflect.String) {
 			return left.(string) + right.(string)
 		}
 		in.error(expr.Operator, "Operands must be two numbers or two strings.")
@@ -209,7 +209,9 @@ func (in *Interpreter) VisitExpressionStmt(stmt definitions.ExpressionStmt) {
 func (in *Interpreter) VisitPrintStmt(stmt definitions.PrintStmt) {
 	if stmt.Expression != nil {
 		value := in.evaluate(stmt.Expression)
-		fmt.Println(stringify(value))
+		if !in.HadError {
+			fmt.Println(stringify(value))
+		}
 	}
 }
 

@@ -11,8 +11,6 @@ import (
 func main() {
 	args := os.Args[1:]
 	command := args[0]
-	// Change out command for easy debugging
-	// command := "run"
 	if command != "tokenize" && command != "parse" && command != "evaluate" && command != "run" {
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
 	}
