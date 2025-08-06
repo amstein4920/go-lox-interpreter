@@ -45,17 +45,14 @@ func (p *Parser) declaration() Stmt {
 }
 
 func (p *Parser) varDeclaration() Stmt {
-	name, err := p.consume(IDENTIFIER)
-	if err != nil {
-		p.error(p.peek(), "Expected variable name.")
-	}
+	name := p.consume(IDENTIFIER, "Expected variable name.")
 
 	var initializer Expr
 	if p.match(EQUAL) {
 		initializer = p.expression()
 	}
 
-	p.consume(SEMICOLON)
+	p.consume(SEMICOLON, "Expect ';' after variable declaration.")
 	return VariableStmt{
 		Name:        name,
 		Initializer: initializer,
@@ -174,10 +171,7 @@ func (p *Parser) primary() Expr {
 	}
 	if p.match(LEFT_PAREN) {
 		expr := p.expression()
-		_, err := p.consume(RIGHT_PAREN)
-		if err != nil {
-			p.error(p.peek(), "Expected ) after (")
-		}
+		p.consume(RIGHT_PAREN, "Expected ) after (")
 		return GroupingExpr{
 			Expression: expr,
 		}
@@ -196,18 +190,33 @@ func (p *Parser) statement() Stmt {
 	if p.match(PRINT) {
 		return p.printStatement()
 	}
+	if p.match(LEFT_BRACE) {
+		return BlockStmt{
+			Statements: p.blockStatement(),
+		}
+	}
 	return p.expressionStmt()
 }
 
 func (p *Parser) printStatement() Stmt {
 	if p.tokens[p.current].TokenType != SEMICOLON {
 		value := p.expression()
-		p.consume(SEMICOLON)
+		p.consume(SEMICOLON, "Expect ';' after expression.")
 		return PrintStmt{
 			Expression: value,
 		}
 	}
 	return nil
+}
+
+func (p *Parser) blockStatement() []Stmt {
+	stmts := []Stmt{}
+
+	for !p.check(RIGHT_BRACE) && !p.isAtEnd() {
+		stmts = append(stmts, p.declaration())
+	}
+	p.consume(RIGHT_BRACE, "Expected '}' after block.")
+	return stmts
 }
 
 func (p *Parser) expressionStmt() Stmt {
@@ -221,7 +230,7 @@ func (p *Parser) expressionStmt() Stmt {
 	}
 
 	value := p.expression()
-	p.consume(SEMICOLON)
+	p.consume(SEMICOLON, "Expect ';' after expression.")
 	return ExpressionStmt{
 		Expression: value,
 	}
@@ -261,11 +270,12 @@ func (p *Parser) previous() Token {
 	return p.tokens[p.current-1]
 }
 
-func (p *Parser) consume(tokenType TokenType) (Token, error) {
+func (p *Parser) consume(tokenType TokenType, message string) Token {
 	if p.check(tokenType) {
-		return p.advance(), nil
+		return p.advance()
 	}
-	return Token{}, fmt.Errorf("expected %v", tokenType)
+	p.error(p.peek(), message)
+	return Token{}
 }
 
 func (p *Parser) synchronize() {

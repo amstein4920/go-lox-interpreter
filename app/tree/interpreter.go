@@ -18,7 +18,10 @@ type Interpreter struct {
 
 // VisitBlockStmt implements StmtVisitor.
 func (in *Interpreter) VisitBlockStmt(stmt definitions.BlockStmt) {
-	panic("unimplemented")
+	in.executeBlock(stmt.Statements, Environment{
+		Values: make(map[string]any),
+		Parent: &in.Env,
+	})
 }
 
 // VisitClassStmt implements StmtVisitor.
@@ -93,6 +96,7 @@ func (in *Interpreter) VisitBinaryExpr(expr definitions.BinaryExpr) any {
 		if err != nil {
 			return ""
 		}
+
 		return left.(float64) * right.(float64)
 	case PLUS:
 		leftType := reflect.TypeOf(left)
@@ -217,6 +221,15 @@ func (in *Interpreter) VisitPrintStmt(stmt definitions.PrintStmt) {
 
 func (in *Interpreter) evaluate(expr definitions.Expr) any {
 	return expr.Accept(in)
+}
+
+func (in *Interpreter) executeBlock(stmts []Stmt, env Environment) {
+	previous := in.Env
+	in.Env = env
+	for _, stmt := range stmts {
+		in.execute(stmt)
+	}
+	in.Env = previous
 }
 
 func (in *Interpreter) checkNumberOperand(operator definitions.Token, operand any) error {

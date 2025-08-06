@@ -17,7 +17,7 @@ type StmtVisitor interface {
 }
 
 type BlockStmt struct {
-	statements []Stmt
+	Statements []Stmt
 }
 
 func (s BlockStmt) Accept(v StmtVisitor) {
