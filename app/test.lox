@@ -1,3 +1,19 @@
- var foo = 52;
-var result = (foo + bar) / baz;
-print result;
+var bar = "global bar";
+var world = "global world";
+var hello = "global hello";
+{
+  var bar = "outer bar";
+  var world = "outer world";
+  {
+    var bar = "inner bar";
+    print bar;
+    print world;
+    print hello;
+  }
+  print bar;
+  print world;
+  print hello;
+}
+print bar;
+print world;
+print hello;

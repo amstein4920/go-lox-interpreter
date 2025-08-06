@@ -7,9 +7,10 @@ type Environment struct {
 	Parent *Environment
 }
 
-func NewEnvironment() Environment {
-	return Environment{
+func NewEnvironment() *Environment {
+	return &Environment{
 		Values: make(map[string]any),
+		Parent: nil,
 	}
 }
 

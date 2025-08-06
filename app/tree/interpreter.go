@@ -13,14 +13,14 @@ import (
 type Interpreter struct {
 	StdErr   io.Writer
 	HadError bool
-	Env      Environment
+	Env      *Environment
 }
 
 // VisitBlockStmt implements StmtVisitor.
 func (in *Interpreter) VisitBlockStmt(stmt definitions.BlockStmt) {
-	in.executeBlock(stmt.Statements, Environment{
+	in.executeBlock(stmt.Statements, &Environment{
 		Values: make(map[string]any),
-		Parent: &in.Env,
+		Parent: in.Env,
 	})
 }
 
@@ -223,7 +223,7 @@ func (in *Interpreter) evaluate(expr definitions.Expr) any {
 	return expr.Accept(in)
 }
 
-func (in *Interpreter) executeBlock(stmts []Stmt, env Environment) {
+func (in *Interpreter) executeBlock(stmts []Stmt, env *Environment) {
 	previous := in.Env
 	in.Env = env
 	for _, stmt := range stmts {
