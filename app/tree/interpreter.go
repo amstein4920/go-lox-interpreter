@@ -165,7 +165,18 @@ func (in *Interpreter) VisitGroupingExpr(expr definitions.GroupingExpr) any {
 
 // VisitLogicalExpr implements ExprVisitor.
 func (in *Interpreter) VisitLogicalExpr(expr definitions.LogicalExpr) any {
-	panic("unimplemented")
+	left := in.evaluate(expr.Left)
+
+	if expr.Operator.TokenType == OR {
+		if isTruthy(left) {
+			return left
+		}
+	} else {
+		if !isTruthy(left) {
+			return left
+		}
+	}
+	return in.evaluate(expr.Right)
 }
 
 // VisitSetExpr implements ExprVisitor.

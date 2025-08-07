@@ -63,8 +63,36 @@ func (p *Parser) expression() Expr {
 	return p.assignment()
 }
 
-func (p *Parser) assignment() Expr {
+func (p *Parser) or() Expr {
+	expr := p.and()
+	for p.match(OR) {
+		operator := p.previous()
+		right := p.and()
+		expr = LogicalExpr{
+			Left:     expr,
+			Operator: operator,
+			Right:    right,
+		}
+	}
+	return expr
+}
+
+func (p *Parser) and() Expr {
 	expr := p.equality()
+	for p.match(AND) {
+		operator := p.previous()
+		right := p.equality()
+		expr = LogicalExpr{
+			Left:     expr,
+			Operator: operator,
+			Right:    right,
+		}
+	}
+	return expr
+}
+
+func (p *Parser) assignment() Expr {
+	expr := p.or()
 	if p.match(EQUAL) {
 		equals := p.previous()
 		value := p.assignment()
