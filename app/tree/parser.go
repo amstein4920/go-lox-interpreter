@@ -187,6 +187,9 @@ func (p *Parser) primary() Expr {
 }
 
 func (p *Parser) statement() Stmt {
+	if p.match(IF) {
+		return p.ifStatement()
+	}
 	if p.match(PRINT) {
 		return p.printStatement()
 	}
@@ -196,6 +199,23 @@ func (p *Parser) statement() Stmt {
 		}
 	}
 	return p.expressionStmt()
+}
+
+func (p *Parser) ifStatement() Stmt {
+	p.consume(LEFT_PAREN, "Expect '(' after 'if'.")
+	condition := p.expression()
+	p.consume(RIGHT_PAREN, "Expect ')' after if condition.")
+
+	thenBranch := p.statement()
+	var elseBranch Stmt
+	if p.match(ELSE) {
+		elseBranch = p.statement()
+	}
+	return IfStmt{
+		Condition:  condition,
+		ThenBranch: thenBranch,
+		ElseBranch: elseBranch,
+	}
 }
 
 func (p *Parser) printStatement() Stmt {

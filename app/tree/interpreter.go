@@ -36,7 +36,13 @@ func (in *Interpreter) VisitFunctionStmt(stmt definitions.FunctionStmt) {
 
 // VisitIfStmt implements StmtVisitor.
 func (in *Interpreter) VisitIfStmt(stmt definitions.IfStmt) {
-	panic("unimplemented")
+	if isTruthy(in.evaluate(stmt.Condition)) {
+		in.execute(stmt.ThenBranch)
+		return
+	}
+	if stmt.ElseBranch != nil {
+		in.execute(stmt.ElseBranch)
+	}
 }
 
 // VisitReturnStmt implements StmtVisitor.

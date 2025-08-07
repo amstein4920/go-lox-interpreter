@@ -53,9 +53,9 @@ func (s FunctionStmt) Accept(v StmtVisitor) {
 }
 
 type IfStmt struct {
-	condition  Expr
-	thenBranch Stmt
-	elseBranch Stmt
+	Condition  Expr
+	ThenBranch Stmt
+	ElseBranch Stmt
 }
 
 func (s IfStmt) Accept(v StmtVisitor) {
