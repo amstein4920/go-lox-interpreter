@@ -89,8 +89,8 @@ func (s VariableStmt) Accept(v StmtVisitor) {
 }
 
 type WhileStmt struct {
-	condition Expr
-	body      Stmt
+	Condition Expr
+	Body      Stmt
 }
 
 func (s WhileStmt) Accept(v StmtVisitor) {

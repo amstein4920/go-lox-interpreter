@@ -61,7 +61,9 @@ func (in *Interpreter) VisitVariableStmt(stmt definitions.VariableStmt) {
 
 // VisitWhileStmt implements StmtVisitor.
 func (in *Interpreter) VisitWhileStmt(stmt definitions.WhileStmt) {
-	panic("unimplemented")
+	for isTruthy(in.evaluate(stmt.Condition)) {
+		in.execute(stmt.Body)
+	}
 }
 
 func NewInterpreter(stdErr io.Writer) *Interpreter {

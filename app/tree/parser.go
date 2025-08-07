@@ -215,6 +215,9 @@ func (p *Parser) primary() Expr {
 }
 
 func (p *Parser) statement() Stmt {
+	if p.match(WHILE) {
+		return p.whileStatement()
+	}
 	if p.match(IF) {
 		return p.ifStatement()
 	}
@@ -227,6 +230,17 @@ func (p *Parser) statement() Stmt {
 		}
 	}
 	return p.expressionStmt()
+}
+
+func (p *Parser) whileStatement() Stmt {
+	p.consume(LEFT_PAREN, "Expect '(' after 'while'.")
+	condition := p.expression()
+	p.consume(RIGHT_PAREN, "Expect ')' after condition.")
+	body := p.statement()
+	return WhileStmt{
+		Condition: condition,
+		Body:      body,
+	}
 }
 
 func (p *Parser) ifStatement() Stmt {
