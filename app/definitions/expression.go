@@ -39,9 +39,9 @@ func (e BinaryExpr) Accept(v ExprVisitor) any {
 }
 
 type CallExpr struct {
-	callee    Expr
-	paren     Token
-	arguments []Expr
+	Callee    Expr
+	Paren     Token
+	Arguments []Expr
 }
 
 func (e CallExpr) Accept(v ExprVisitor) any {

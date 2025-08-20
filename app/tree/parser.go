@@ -33,7 +33,9 @@ func (p *Parser) ParseStatements() []Stmt {
 }
 
 func (p *Parser) declaration() Stmt {
-	if p.match(VAR) {
+	if p.match(FUN) {
+		return p.function("function")
+	} else if p.match(VAR) {
 		return p.varDeclaration()
 	}
 	stmt := p.statement()
@@ -42,6 +44,34 @@ func (p *Parser) declaration() Stmt {
 		return nil
 	}
 	return stmt
+}
+
+func (p *Parser) function(kind string) FunctionStmt {
+	name := p.consume(IDENTIFIER, fmt.Sprintf("Expect %s name.", kind))
+	p.consume(LEFT_PAREN, fmt.Sprintf("Expect '(' after %s name.", kind))
+	parameters := []Token{}
+
+	if !p.check(RIGHT_PAREN) {
+		for {
+			if len(parameters) > 255 {
+				p.error(p.peek(), "can't have more than 255 parameters")
+				return FunctionStmt{}
+			}
+			parameters = append(parameters, p.consume(IDENTIFIER, "Expect parameter name."))
+
+			if p.match(COMMA) {
+				break
+			}
+		}
+	}
+	p.consume(RIGHT_PAREN, "Expect ')' after parameters.")
+	p.consume(LEFT_BRACE, fmt.Sprintf("Expect '{' before %s body.", kind))
+	body := p.blockStatement()
+	return FunctionStmt{
+		Name:   name,
+		Params: parameters,
+		Body:   body,
+	}
 }
 
 func (p *Parser) varDeclaration() Stmt {
@@ -172,7 +202,21 @@ func (p *Parser) unary() Expr {
 			Right:    right,
 		}
 	}
-	return p.primary()
+	return p.call()
+}
+
+func (p *Parser) call() Expr {
+	expr := p.primary()
+
+	// NOTE: Could be condensed?
+	for {
+		if p.match(LEFT_PAREN) {
+			expr = p.finishCall(expr)
+		} else {
+			break
+		}
+	}
+	return expr
 }
 
 func (p *Parser) primary() Expr {
@@ -345,6 +389,31 @@ func (p *Parser) expressionStmt() Stmt {
 	p.consume(SEMICOLON, "Expect ';' after expression.")
 	return ExpressionStmt{
 		Expression: value,
+	}
+}
+
+func (p *Parser) finishCall(callee Expr) Expr {
+	arguments := []Expr{}
+
+	if !p.check(RIGHT_PAREN) {
+		for {
+			if len(arguments) >= 255 {
+				p.error(p.peek(), "Can't have more than 255 arguments")
+				return nil
+			}
+			arguments = append(arguments, p.expression())
+
+			if !p.match(COMMA) {
+				break
+			}
+		}
+	}
+
+	paren := p.consume(RIGHT_PAREN, "Expect ')' after arguments.")
+	return CallExpr{
+		Callee:    callee,
+		Paren:     paren,
+		Arguments: arguments,
 	}
 }
 

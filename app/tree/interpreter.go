@@ -14,6 +14,19 @@ type Interpreter struct {
 	StdErr   io.Writer
 	HadError bool
 	Env      *Environment
+	Globals  *Environment
+	Locals   map[string]int
+}
+
+func NewInterpreter(stdErr io.Writer) *Interpreter {
+	globals := NewEnvironment()
+	globals.Define("clock", clock{})
+	return &Interpreter{
+		StdErr:  stdErr,
+		Globals: globals,
+		Env:     globals,
+		Locals:  make(map[string]int),
+	}
 }
 
 // VisitBlockStmt implements StmtVisitor.
@@ -63,14 +76,6 @@ func (in *Interpreter) VisitVariableStmt(stmt definitions.VariableStmt) {
 func (in *Interpreter) VisitWhileStmt(stmt definitions.WhileStmt) {
 	for isTruthy(in.evaluate(stmt.Condition)) {
 		in.execute(stmt.Body)
-	}
-}
-
-func NewInterpreter(stdErr io.Writer) *Interpreter {
-
-	return &Interpreter{
-		StdErr: stdErr,
-		Env:    definitions.NewEnvironment(),
 	}
 }
 
@@ -150,9 +155,27 @@ func (in *Interpreter) VisitBinaryExpr(expr definitions.BinaryExpr) any {
 	return nil // Shouldn't happen
 }
 
+type callable interface {
+	Call(*Interpreter, []any) any
+	Arity() int
+}
+
 // VisitCallExpr implements ExprVisitor.
 func (in *Interpreter) VisitCallExpr(expr definitions.CallExpr) any {
-	panic("unimplemented")
+	callee := in.evaluate(expr.Callee)
+	arguments := make([]any, len(expr.Arguments))
+
+	for i, val := range expr.Arguments {
+		arguments[i] = in.evaluate(val)
+	}
+	fn, ok := (callee).(callable)
+	if !ok {
+		in.error(expr.Paren, "Can only call functions and classes.")
+	}
+	if len(arguments) != fn.Arity() {
+		in.error(expr.Paren, fmt.Sprintf("Expected %d arguments but got %d.", fn.Arity(), len(arguments)))
+	}
+	return fn.Call(in, arguments)
 }
 
 // VisitGetExpr implements ExprVisitor.

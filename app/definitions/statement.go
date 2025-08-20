@@ -43,9 +43,9 @@ func (s ExpressionStmt) Accept(v StmtVisitor) {
 }
 
 type FunctionStmt struct {
-	name   Token
-	params []Token
-	body   []Stmt
+	Name   Token
+	Params []Token
+	Body   []Stmt
 }
 
 func (s FunctionStmt) Accept(v StmtVisitor) {
