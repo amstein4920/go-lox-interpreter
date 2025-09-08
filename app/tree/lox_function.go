@@ -1,0 +1,33 @@
+package tree
+
+import (
+	"fmt"
+
+	"github.com/codecrafters-io/interpreter-starter-go/app/definitions"
+)
+
+type callable interface {
+	Call(in Interpreter, args []any) any
+	Arity() int
+}
+
+type LoxFunction struct {
+	Declaration definitions.FunctionStmt
+}
+
+func (lf LoxFunction) Call(in Interpreter, args []any) any {
+	env := definitions.NewEnvironment(in.Globals)
+	for i, val := range lf.Declaration.Params {
+		env.Define(val.Lexeme, args[i])
+	}
+	in.executeBlock(lf.Declaration.Body, env)
+	return nil
+}
+
+func (lf LoxFunction) Arity() int {
+	return len(lf.Declaration.Params)
+}
+
+func (lf LoxFunction) String() string {
+	return fmt.Sprintf("<fn %s>", lf.Declaration.Name.Lexeme)
+}

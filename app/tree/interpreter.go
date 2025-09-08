@@ -19,7 +19,7 @@ type Interpreter struct {
 }
 
 func NewInterpreter(stdErr io.Writer) *Interpreter {
-	globals := NewEnvironment()
+	globals := NewEnvironment(nil)
 	globals.Define("clock", clock{})
 	return &Interpreter{
 		StdErr:  stdErr,
@@ -44,7 +44,10 @@ func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
 
 // VisitFunctionStmt implements StmtVisitor.
 func (in *Interpreter) VisitFunctionStmt(stmt definitions.FunctionStmt) {
-	panic("unimplemented")
+	function := LoxFunction{
+		Declaration: stmt,
+	}
+	in.Env.Define(stmt.Name.Lexeme, function)
 }
 
 // VisitIfStmt implements StmtVisitor.
@@ -60,7 +63,12 @@ func (in *Interpreter) VisitIfStmt(stmt definitions.IfStmt) {
 
 // VisitReturnStmt implements StmtVisitor.
 func (in *Interpreter) VisitReturnStmt(stmt definitions.ReturnStmt) {
-	panic("unimplemented")
+	var value any
+	if stmt.Value != nil {
+		value = in.evaluate(stmt.Value)
+	}
+	fmt.Println(value)
+	// Need to do something here to get the returned value up the call stack
 }
 
 // VisitVariableStmt implements StmtVisitor.
@@ -155,11 +163,6 @@ func (in *Interpreter) VisitBinaryExpr(expr definitions.BinaryExpr) any {
 	return nil // Shouldn't happen
 }
 
-type callable interface {
-	Call(*Interpreter, []any) any
-	Arity() int
-}
-
 // VisitCallExpr implements ExprVisitor.
 func (in *Interpreter) VisitCallExpr(expr definitions.CallExpr) any {
 	callee := in.evaluate(expr.Callee)
@@ -168,14 +171,14 @@ func (in *Interpreter) VisitCallExpr(expr definitions.CallExpr) any {
 	for i, val := range expr.Arguments {
 		arguments[i] = in.evaluate(val)
 	}
-	fn, ok := (callee).(callable)
+	fn, ok := callee.(callable)
 	if !ok {
 		in.error(expr.Paren, "Can only call functions and classes.")
 	}
 	if len(arguments) != fn.Arity() {
 		in.error(expr.Paren, fmt.Sprintf("Expected %d arguments but got %d.", fn.Arity(), len(arguments)))
 	}
-	return fn.Call(in, arguments)
+	return fn.Call(*in, arguments)
 }
 
 // VisitGetExpr implements ExprVisitor.

@@ -71,8 +71,8 @@ func (s PrintStmt) Accept(v StmtVisitor) {
 }
 
 type ReturnStmt struct {
-	keyword Token
-	value   Expr
+	Keyword Token
+	Value   Expr
 }
 
 func (s ReturnStmt) Accept(v StmtVisitor) {

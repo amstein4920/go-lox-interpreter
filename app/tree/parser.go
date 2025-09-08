@@ -59,7 +59,7 @@ func (p *Parser) function(kind string) FunctionStmt {
 			}
 			parameters = append(parameters, p.consume(IDENTIFIER, "Expect parameter name."))
 
-			if p.match(COMMA) {
+			if !p.match(COMMA) {
 				break
 			}
 		}
@@ -276,7 +276,10 @@ func (p *Parser) statement() Stmt {
 			Statements: p.blockStatement(),
 		}
 	}
-	return p.expressionStmt()
+	if p.match(RETURN) {
+		return p.returnStatement()
+	}
+	return p.expressionStatement()
 }
 
 func (p *Parser) whileStatement() Stmt {
@@ -298,7 +301,7 @@ func (p *Parser) forStatement() Stmt {
 	} else if p.match(VAR) {
 		initializer = p.varDeclaration()
 	} else {
-		initializer = p.expressionStmt()
+		initializer = p.expressionStatement()
 	}
 
 	var condition Expr
@@ -375,7 +378,21 @@ func (p *Parser) blockStatement() []Stmt {
 	return stmts
 }
 
-func (p *Parser) expressionStmt() Stmt {
+func (p *Parser) returnStatement() Stmt {
+	keyword := p.previous()
+	var value Expr
+
+	if !p.check(SEMICOLON) {
+		value = p.expression()
+	}
+	p.consume(SEMICOLON, "Expect ';' after return value.")
+	return ReturnStmt{
+		Keyword: keyword,
+		Value:   value,
+	}
+}
+
+func (p *Parser) expressionStatement() Stmt {
 	if p.HadError {
 		for _, token := range p.tokens {
 			if token.TokenType == SEMICOLON {
