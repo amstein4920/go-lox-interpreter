@@ -15,7 +15,14 @@ type LoxFunction struct {
 	Declaration definitions.FunctionStmt
 }
 
-func (lf LoxFunction) Call(in Interpreter, args []any) any {
+func (lf LoxFunction) Call(in Interpreter, args []any) (returnValue any) {
+	defer func() {
+		if val := recover(); val != nil {
+			returnValue = val
+			return
+		}
+	}()
+
 	env := definitions.NewEnvironment(in.Globals)
 	for i, val := range lf.Declaration.Params {
 		env.Define(val.Lexeme, args[i])

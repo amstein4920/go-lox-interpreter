@@ -67,8 +67,10 @@ func (in *Interpreter) VisitReturnStmt(stmt definitions.ReturnStmt) {
 	if stmt.Value != nil {
 		value = in.evaluate(stmt.Value)
 	}
-	fmt.Println(value)
-	// Need to do something here to get the returned value up the call stack
+
+	if value != nil {
+		panic(value)
+	}
 }
 
 // VisitVariableStmt implements StmtVisitor.
@@ -273,6 +275,9 @@ func (in *Interpreter) executeBlock(stmts []Stmt, env *Environment) {
 	in.Env = env
 	for _, stmt := range stmts {
 		in.execute(stmt)
+		if _, ok := stmt.(ReturnStmt); ok {
+			break
+		}
 	}
 	in.Env = previous
 }
