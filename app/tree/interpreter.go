@@ -46,6 +46,7 @@ func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
 func (in *Interpreter) VisitFunctionStmt(stmt definitions.FunctionStmt) {
 	function := LoxFunction{
 		Declaration: stmt,
+		Closure:     *in.Env,
 	}
 	in.Env.Define(stmt.Name.Lexeme, function)
 }

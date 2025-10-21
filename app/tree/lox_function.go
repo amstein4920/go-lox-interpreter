@@ -13,6 +13,7 @@ type callable interface {
 
 type LoxFunction struct {
 	Declaration definitions.FunctionStmt
+	Closure     definitions.Environment
 }
 
 func (lf LoxFunction) Call(in Interpreter, args []any) (returnValue any) {
@@ -23,7 +24,7 @@ func (lf LoxFunction) Call(in Interpreter, args []any) (returnValue any) {
 		}
 	}()
 
-	env := definitions.NewEnvironment(in.Globals)
+	env := definitions.NewEnvironment(&lf.Closure)
 	for i, val := range lf.Declaration.Params {
 		env.Define(val.Lexeme, args[i])
 	}
