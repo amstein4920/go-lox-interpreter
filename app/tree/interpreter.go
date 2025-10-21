@@ -177,9 +177,11 @@ func (in *Interpreter) VisitCallExpr(expr definitions.CallExpr) any {
 	fn, ok := callee.(callable)
 	if !ok {
 		in.error(expr.Paren, "Can only call functions and classes.")
+		return nil
 	}
 	if len(arguments) != fn.Arity() {
 		in.error(expr.Paren, fmt.Sprintf("Expected %d arguments but got %d.", fn.Arity(), len(arguments)))
+		return nil
 	}
 	return fn.Call(*in, arguments)
 }
