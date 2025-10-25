@@ -16,11 +16,19 @@ type scope struct {
 
 type scopeMap map[string]*scope
 
+type functionType int
+
+const (
+	functionTypeNone functionType = iota
+	functionTypeFunction
+)
+
 type Resolver struct {
-	interpreter *Interpreter
-	scopes      []scopeMap
-	HadError    bool
-	stdErr      io.Writer
+	interpreter     *Interpreter
+	scopes          []scopeMap
+	currentFunction functionType
+	HadError        bool
+	stdErr          io.Writer
 }
 
 func NewResolver(interpreter *Interpreter, stdErr io.Writer) *Resolver {
@@ -122,7 +130,7 @@ func (r *Resolver) VisitExpressionStmt(stmt ExpressionStmt) any {
 func (r *Resolver) VisitFunctionStmt(stmt FunctionStmt) {
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
-	r.resolveFunc(stmt)
+	r.resolveFunc(stmt, functionTypeFunction)
 }
 
 // VisitIfStmt implements definitions.StmtVisitor.
@@ -141,6 +149,9 @@ func (r *Resolver) VisitPrintStmt(stmt PrintStmt) {
 
 // VisitReturnStmt implements definitions.StmtVisitor.
 func (r *Resolver) VisitReturnStmt(stmt ReturnStmt) {
+	if r.currentFunction == functionTypeNone {
+		r.error(stmt.Keyword, "Can't return from top-level code.")
+	}
 	if stmt.Value != nil {
 		r.resolveExpr(stmt.Value)
 	}
@@ -181,7 +192,9 @@ func (r *Resolver) resolveExpr(expr Expr) {
 	expr.Accept(r)
 }
 
-func (r *Resolver) resolveFunc(function FunctionStmt) {
+func (r *Resolver) resolveFunc(function FunctionStmt, fType functionType) {
+	enclosingFunction := r.currentFunction
+	r.currentFunction = fType
 	r.beginScope()
 	for _, param := range function.Params {
 		r.declare(param)
@@ -189,6 +202,7 @@ func (r *Resolver) resolveFunc(function FunctionStmt) {
 	}
 	r.ResolveStmts(function.Body)
 	r.endScope()
+	r.currentFunction = enclosingFunction
 }
 
 func (r *Resolver) resolveLocal(expr Expr, name Token) {
