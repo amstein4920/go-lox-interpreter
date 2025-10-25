@@ -215,6 +215,11 @@ func (r *Resolver) declare(name Token) {
 		return
 	}
 	s := r.scopes[len(r.scopes)-1]
+
+	if _, ok := s[name.Lexeme]; ok {
+		r.error(name, "Already a variable with this name in this scope.")
+	}
+
 	s[name.Lexeme] = &scope{token: name}
 }
 

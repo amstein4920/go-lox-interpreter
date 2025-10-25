@@ -131,7 +131,7 @@ func runRun(source string) {
 	resolver.ResolveStmts(statements)
 
 	if resolver.HadError {
-		os.Exit(70)
+		os.Exit(65)
 	}
 
 	interpreter.Interpret(statements)
