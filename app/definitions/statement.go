@@ -7,7 +7,7 @@ type Stmt interface {
 type StmtVisitor interface {
 	VisitBlockStmt(stmt BlockStmt)
 	VisitClassStmt(stmt ClassStmt)
-	VisitExpressionStmt(stmt ExpressionStmt)
+	VisitExpressionStmt(stmt ExpressionStmt) any
 	VisitFunctionStmt(stmt FunctionStmt)
 	VisitIfStmt(stmt IfStmt)
 	VisitPrintStmt(stmt PrintStmt)

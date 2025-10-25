@@ -6,6 +6,11 @@ import (
 	"github.com/codecrafters-io/interpreter-starter-go/app/definitions"
 )
 
+// runtime carrier used to unwind the interpreter on return
+type returnValue struct {
+	value any
+}
+
 type callable interface {
 	Call(in Interpreter, args []any) any
 	Arity() int
@@ -16,11 +21,15 @@ type LoxFunction struct {
 	Closure     definitions.Environment
 }
 
-func (lf LoxFunction) Call(in Interpreter, args []any) (returnValue any) {
+func (lf LoxFunction) Call(in Interpreter, args []any) (returnValueAny any) {
 	defer func() {
-		if val := recover(); val != nil {
-			returnValue = val
-			return
+		if rec := recover(); rec != nil {
+			// only handle our returnValue; re-panic anything else
+			if rv, ok := rec.(returnValue); ok {
+				returnValueAny = rv.value
+				return
+			}
+			panic(rec)
 		}
 	}()
 

@@ -15,7 +15,7 @@ type Interpreter struct {
 	HadError bool
 	Env      *Environment
 	Globals  *Environment
-	Locals   map[string]int
+	Locals   map[Expr]int
 }
 
 func NewInterpreter(stdErr io.Writer) *Interpreter {
@@ -25,7 +25,7 @@ func NewInterpreter(stdErr io.Writer) *Interpreter {
 		StdErr:  stdErr,
 		Globals: globals,
 		Env:     globals,
-		Locals:  make(map[string]int),
+		Locals:  make(map[Expr]int),
 	}
 }
 
@@ -68,10 +68,7 @@ func (in *Interpreter) VisitReturnStmt(stmt definitions.ReturnStmt) {
 	if stmt.Value != nil {
 		value = in.evaluate(stmt.Value)
 	}
-
-	if value != nil {
-		panic(value)
-	}
+	panic(returnValue{value: value})
 }
 
 // VisitVariableStmt implements StmtVisitor.
@@ -91,14 +88,19 @@ func (in *Interpreter) VisitWhileStmt(stmt definitions.WhileStmt) {
 }
 
 // VisitAssignExpr implements ExprVisitor.
-func (in *Interpreter) VisitAssignExpr(expr definitions.AssignExpr) any {
+func (in *Interpreter) VisitAssignExpr(expr *definitions.AssignExpr) any {
 	value := in.evaluate(expr.Value)
-	in.Env.Assign(expr.Name, value)
+	distance, ok := in.Locals[expr]
+	if ok {
+		in.Env.AssignAt(distance, expr.Name, value)
+	} else {
+		in.Globals.Assign(expr.Name, value)
+	}
 	return value
 }
 
 // VisitBinaryExpr implements ExprVisitor.
-func (in *Interpreter) VisitBinaryExpr(expr definitions.BinaryExpr) any {
+func (in *Interpreter) VisitBinaryExpr(expr *definitions.BinaryExpr) any {
 	left := in.evaluate(expr.Left)
 	right := in.evaluate(expr.Right)
 
@@ -167,7 +169,7 @@ func (in *Interpreter) VisitBinaryExpr(expr definitions.BinaryExpr) any {
 }
 
 // VisitCallExpr implements ExprVisitor.
-func (in *Interpreter) VisitCallExpr(expr definitions.CallExpr) any {
+func (in *Interpreter) VisitCallExpr(expr *definitions.CallExpr) any {
 	callee := in.evaluate(expr.Callee)
 	arguments := make([]any, len(expr.Arguments))
 
@@ -187,17 +189,17 @@ func (in *Interpreter) VisitCallExpr(expr definitions.CallExpr) any {
 }
 
 // VisitGetExpr implements ExprVisitor.
-func (in *Interpreter) VisitGetExpr(expr definitions.GetExpr) any {
+func (in *Interpreter) VisitGetExpr(expr *definitions.GetExpr) any {
 	panic("unimplemented")
 }
 
 // VisitGroupingExpr implements ExprVisitor.
-func (in *Interpreter) VisitGroupingExpr(expr definitions.GroupingExpr) any {
+func (in *Interpreter) VisitGroupingExpr(expr *definitions.GroupingExpr) any {
 	return in.evaluate(expr.Expression)
 }
 
 // VisitLogicalExpr implements ExprVisitor.
-func (in *Interpreter) VisitLogicalExpr(expr definitions.LogicalExpr) any {
+func (in *Interpreter) VisitLogicalExpr(expr *definitions.LogicalExpr) any {
 	left := in.evaluate(expr.Left)
 
 	if expr.Operator.TokenType == OR {
@@ -213,21 +215,21 @@ func (in *Interpreter) VisitLogicalExpr(expr definitions.LogicalExpr) any {
 }
 
 // VisitSetExpr implements ExprVisitor.
-func (in *Interpreter) VisitSetExpr(expr definitions.SetExpr) any {
+func (in *Interpreter) VisitSetExpr(expr *definitions.SetExpr) any {
 	panic("unimplemented")
 }
 
 // VisitSuperExpr implements ExprVisitor.
-func (in *Interpreter) VisitSuperExpr(expr definitions.SuperExpr) any {
+func (in *Interpreter) VisitSuperExpr(expr *definitions.SuperExpr) any {
 	panic("unimplemented")
 }
 
 // VisitThisExpr implements ExprVisitor.
-func (in *Interpreter) VisitThisExpr(expr definitions.ThisExpr) any {
+func (in *Interpreter) VisitThisExpr(expr *definitions.ThisExpr) any {
 	panic("unimplemented")
 }
 
-func (in *Interpreter) VisitUnaryExpr(expr definitions.UnaryExpr) any {
+func (in *Interpreter) VisitUnaryExpr(expr *definitions.UnaryExpr) any {
 	right := in.evaluate(expr.Right)
 	switch expr.Operator.TokenType {
 	case MINUS:
@@ -243,21 +245,20 @@ func (in *Interpreter) VisitUnaryExpr(expr definitions.UnaryExpr) any {
 }
 
 // VisitVariableExpr implements ExprVisitor.
-func (in *Interpreter) VisitVariableExpr(expr definitions.VariableExpr) any {
-	value, err := in.Env.Get(expr.Name)
+func (in *Interpreter) VisitVariableExpr(expr *definitions.VariableExpr) any {
+	value, err := in.lookUpVariable(expr.Name, expr)
 	if err != nil {
 		in.error(expr.Name, err.Error())
 	}
 	return value
 }
 
-func (in *Interpreter) VisitLiteralExpr(expr definitions.LiteralExpr) any {
+func (in *Interpreter) VisitLiteralExpr(expr *definitions.LiteralExpr) any {
 	return expr.Value
 }
 
-func (in *Interpreter) VisitExpressionStmt(stmt definitions.ExpressionStmt) {
-	val := in.evaluate(stmt.Expression)
-	println(val)
+func (in *Interpreter) VisitExpressionStmt(stmt definitions.ExpressionStmt) any {
+	return in.evaluate(stmt.Expression)
 }
 
 func (in *Interpreter) VisitPrintStmt(stmt definitions.PrintStmt) {
@@ -322,6 +323,18 @@ func (in *Interpreter) Interpret(stmts []definitions.Stmt) {
 
 func (in *Interpreter) execute(stmt definitions.Stmt) {
 	stmt.Accept(in)
+}
+
+func (in *Interpreter) Resolve(expr Expr, depth int) {
+	in.Locals[expr] = depth
+}
+
+func (in *Interpreter) lookUpVariable(name Token, expr Expr) (any, error) {
+	distance, ok := in.Locals[expr]
+	if ok {
+		return in.Env.GetAt(distance, name)
+	}
+	return in.Globals.Get(name)
 }
 
 func isTruthy(obj any) bool {

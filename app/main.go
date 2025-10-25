@@ -126,6 +126,14 @@ func runRun(source string) {
 	}
 
 	interpreter := tree.NewInterpreter(os.Stderr)
+
+	resolver := tree.NewResolver(interpreter, os.Stderr)
+	resolver.ResolveStmts(statements)
+
+	if resolver.HadError {
+		os.Exit(70)
+	}
+
 	interpreter.Interpret(statements)
 	if interpreter.HadError {
 		os.Exit(70)

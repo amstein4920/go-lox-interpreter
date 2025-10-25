@@ -83,7 +83,7 @@ func (p *Parser) varDeclaration() Stmt {
 	}
 
 	p.consume(SEMICOLON, "Expect ';' after variable declaration.")
-	return VariableStmt{
+	return &VariableStmt{
 		Name:        name,
 		Initializer: initializer,
 	}
@@ -98,7 +98,7 @@ func (p *Parser) or() Expr {
 	for p.match(OR) {
 		operator := p.previous()
 		right := p.and()
-		expr = LogicalExpr{
+		expr = &LogicalExpr{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
@@ -112,7 +112,7 @@ func (p *Parser) and() Expr {
 	for p.match(AND) {
 		operator := p.previous()
 		right := p.equality()
-		expr = LogicalExpr{
+		expr = &LogicalExpr{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
@@ -126,8 +126,8 @@ func (p *Parser) assignment() Expr {
 	if p.match(EQUAL) {
 		equals := p.previous()
 		value := p.assignment()
-		if varExpr, isVarExpr := expr.(VariableExpr); isVarExpr {
-			return AssignExpr{
+		if varExpr, isVarExpr := expr.(*VariableExpr); isVarExpr {
+			return &AssignExpr{
 				Name:  varExpr.Name,
 				Value: value,
 			}
@@ -142,7 +142,7 @@ func (p *Parser) equality() Expr {
 	for p.match(BANG_EQUAL, EQUAL_EQUAL) {
 		operator := p.previous()
 		right := p.comparison()
-		expr = BinaryExpr{
+		expr = &BinaryExpr{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
@@ -156,7 +156,7 @@ func (p *Parser) comparison() Expr {
 	for p.match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL) {
 		operator := p.previous()
 		right := p.term()
-		expr = BinaryExpr{
+		expr = &BinaryExpr{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
@@ -170,7 +170,7 @@ func (p *Parser) term() Expr {
 	for p.match(MINUS, PLUS) {
 		operator := p.previous()
 		right := p.factor()
-		expr = BinaryExpr{
+		expr = &BinaryExpr{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
@@ -184,7 +184,7 @@ func (p *Parser) factor() Expr {
 	for p.match(STAR, SLASH) {
 		operator := p.previous()
 		right := p.unary()
-		expr = BinaryExpr{
+		expr = &BinaryExpr{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
@@ -197,7 +197,7 @@ func (p *Parser) unary() Expr {
 	if p.match(BANG, MINUS) {
 		operator := p.previous()
 		right := p.unary()
-		return UnaryExpr{
+		return &UnaryExpr{
 			Operator: operator,
 			Right:    right,
 		}
@@ -221,35 +221,35 @@ func (p *Parser) call() Expr {
 
 func (p *Parser) primary() Expr {
 	if p.match(TRUE) {
-		return LiteralExpr{
+		return &LiteralExpr{
 			Value: true,
 		}
 	}
 	if p.match(FALSE) {
-		return LiteralExpr{
+		return &LiteralExpr{
 			Value: false,
 		}
 	}
 	if p.match(NIL) {
-		return LiteralExpr{
+		return &LiteralExpr{
 			Value: nil,
 		}
 	}
 
 	if p.match(STRING, NUMBER) {
-		return LiteralExpr{
+		return &LiteralExpr{
 			Value: p.previous().Literal,
 		}
 	}
 	if p.match(LEFT_PAREN) {
 		expr := p.expression()
 		p.consume(RIGHT_PAREN, "Expected ) after (")
-		return GroupingExpr{
+		return &GroupingExpr{
 			Expression: expr,
 		}
 	}
 	if p.match(IDENTIFIER) {
-		return VariableExpr{
+		return &VariableExpr{
 			Name: p.previous(),
 		}
 	}
@@ -324,7 +324,7 @@ func (p *Parser) forStatement() Stmt {
 		}
 	}
 	if condition == nil {
-		condition = LiteralExpr{
+		condition = &LiteralExpr{
 			Value: true,
 		}
 	}
@@ -350,7 +350,7 @@ func (p *Parser) ifStatement() Stmt {
 	if p.match(ELSE) {
 		elseBranch = p.statement()
 	}
-	return IfStmt{
+	return &IfStmt{
 		Condition:  condition,
 		ThenBranch: thenBranch,
 		ElseBranch: elseBranch,
@@ -386,7 +386,7 @@ func (p *Parser) returnStatement() Stmt {
 		value = p.expression()
 	}
 	p.consume(SEMICOLON, "Expect ';' after return value.")
-	return ReturnStmt{
+	return &ReturnStmt{
 		Keyword: keyword,
 		Value:   value,
 	}
@@ -399,12 +399,12 @@ func (p *Parser) expressionStatement() Stmt {
 				break
 			}
 		}
-		return ExpressionStmt{}
+		return &ExpressionStmt{}
 	}
 
 	value := p.expression()
 	p.consume(SEMICOLON, "Expect ';' after expression.")
-	return ExpressionStmt{
+	return &ExpressionStmt{
 		Expression: value,
 	}
 }
@@ -427,7 +427,7 @@ func (p *Parser) finishCall(callee Expr) Expr {
 	}
 
 	paren := p.consume(RIGHT_PAREN, "Expect ')' after arguments.")
-	return CallExpr{
+	return &CallExpr{
 		Callee:    callee,
 		Paren:     paren,
 		Arguments: arguments,

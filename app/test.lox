@@ -1,1 +1,6 @@
-85();
+fun f() {
+    return;
+    print "bad";
+}
+
+print f();
