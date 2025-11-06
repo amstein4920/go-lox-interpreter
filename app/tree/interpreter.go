@@ -39,7 +39,9 @@ func (in *Interpreter) VisitBlockStmt(stmt definitions.BlockStmt) {
 
 // VisitClassStmt implements StmtVisitor.
 func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
-	panic("unimplemented")
+	in.Env.Define(stmt.Name.Lexeme, nil)
+	lclass := NewClass(stmt.Name.Lexeme)
+	in.Env.Assign(stmt.Name, lclass)
 }
 
 // VisitFunctionStmt implements StmtVisitor.
@@ -190,7 +192,17 @@ func (in *Interpreter) VisitCallExpr(expr *definitions.CallExpr) any {
 
 // VisitGetExpr implements ExprVisitor.
 func (in *Interpreter) VisitGetExpr(expr *definitions.GetExpr) any {
-	panic("unimplemented")
+	object := in.evaluate(expr.Object)
+	if instance, ok := object.(Instance); ok {
+		value, err := instance.get(expr.Name)
+		if err != nil {
+			in.error(expr.Name, fmt.Sprintf("Undefined property %s.", expr.Name.Lexeme))
+			return nil
+		}
+		return value
+	}
+	in.error(expr.Name, "Only instances have properties")
+	return nil
 }
 
 // VisitGroupingExpr implements ExprVisitor.
@@ -216,7 +228,15 @@ func (in *Interpreter) VisitLogicalExpr(expr *definitions.LogicalExpr) any {
 
 // VisitSetExpr implements ExprVisitor.
 func (in *Interpreter) VisitSetExpr(expr *definitions.SetExpr) any {
-	panic("unimplemented")
+	object := in.evaluate(expr.Object)
+	instance, ok := object.(Instance)
+	if !ok {
+		in.error(expr.Name, "Only instances have fields.")
+		return nil
+	}
+	value := in.evaluate(expr.Value)
+	instance.set(expr.Name, value)
+	return value
 }
 
 // VisitSuperExpr implements ExprVisitor.

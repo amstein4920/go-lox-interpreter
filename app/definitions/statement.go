@@ -25,9 +25,9 @@ func (s BlockStmt) Accept(v StmtVisitor) {
 }
 
 type ClassStmt struct {
-	name       Token
+	Name       Token
 	superClass VariableExpr
-	methods    []FunctionStmt
+	Methods    []FunctionStmt
 }
 
 func (s ClassStmt) Accept(v StmtVisitor) {

@@ -60,7 +60,8 @@ func (r *Resolver) VisitCallExpr(expr *CallExpr) any {
 
 // VisitGetExpr implements definitions.ExprVisitor.
 func (r *Resolver) VisitGetExpr(expr *GetExpr) any {
-	panic("unimplemented")
+	r.resolveExpr(expr.Object)
+	return nil
 }
 
 // VisitGroupingExpr implements definitions.ExprVisitor.
@@ -84,7 +85,9 @@ func (r *Resolver) VisitLogicalExpr(expr *LogicalExpr) any {
 
 // VisitSetExpr implements definitions.ExprVisitor.
 func (r *Resolver) VisitSetExpr(expr *SetExpr) any {
-	panic("unimplemented")
+	r.resolveExpr(expr.Value)
+	r.resolveExpr(expr.Object)
+	return nil
 }
 
 // VisitSuperExpr implements definitions.ExprVisitor.
@@ -117,7 +120,8 @@ func (r *Resolver) VisitVariableExpr(expr *VariableExpr) any {
 
 // VisitClassStmt implements definitions.StmtVisitor.
 func (r *Resolver) VisitClassStmt(stmt ClassStmt) {
-	panic("unimplemented")
+	r.declare(stmt.Name)
+	r.define(stmt.Name)
 }
 
 // VisitExpressionStmt implements definitions.StmtVisitor.

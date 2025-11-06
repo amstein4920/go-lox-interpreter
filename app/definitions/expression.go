@@ -49,8 +49,8 @@ func (e *CallExpr) Accept(v ExprVisitor) any {
 }
 
 type GetExpr struct {
-	object Expr
-	name   Token
+	Object Expr
+	Name   Token
 }
 
 func (e *GetExpr) Accept(v ExprVisitor) any {
@@ -84,9 +84,9 @@ func (e *LogicalExpr) Accept(v ExprVisitor) any {
 }
 
 type SetExpr struct {
-	object Expr
-	name   Token
-	value  Expr
+	Object Expr
+	Name   Token
+	Value  Expr
 }
 
 func (e *SetExpr) Accept(v ExprVisitor) any {
