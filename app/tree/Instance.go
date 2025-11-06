@@ -30,6 +30,6 @@ func (i *Instance) set(name definitions.Token, value any) {
 	i.fields[name.Lexeme] = value
 }
 
-func (i *Instance) String() string {
+func (i Instance) String() string {
 	return fmt.Sprintf("%s instance", i.klass.Name)
 }

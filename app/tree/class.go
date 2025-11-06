@@ -14,10 +14,10 @@ func (c Class) String() string {
 	return c.Name
 }
 
-func (c *Class) call(interpreter Interpreter, arguments []any) any {
-	return NewInstance(*c)
+func (c Class) Call(interpreter Interpreter, arguments []any) any {
+	return NewInstance(c)
 }
 
-func (c *Class) arity() int {
+func (c Class) Arity() int {
 	return 0
 }
