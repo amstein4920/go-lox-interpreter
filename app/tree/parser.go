@@ -154,7 +154,7 @@ func (p *Parser) assignment() Expr {
 			return &SetExpr{
 				Object: val.Object,
 				Name:   val.Name,
-				Value:  val,
+				Value:  value,
 			}
 		}
 		p.error(equals, "Invalid assignment target.")
