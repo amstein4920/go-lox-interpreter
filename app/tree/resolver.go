@@ -21,6 +21,7 @@ type functionType int
 const (
 	functionTypeNone functionType = iota
 	functionTypeFunction
+	functionTypeMethod
 )
 
 type Resolver struct {
@@ -122,6 +123,11 @@ func (r *Resolver) VisitVariableExpr(expr *VariableExpr) any {
 func (r *Resolver) VisitClassStmt(stmt ClassStmt) {
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
+
+	for _, method := range stmt.Methods {
+		declaration := functionTypeMethod
+		r.resolveFunc(method, declaration)
+	}
 }
 
 // VisitExpressionStmt implements definitions.StmtVisitor.

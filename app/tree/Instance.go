@@ -23,6 +23,9 @@ func (i *Instance) get(name definitions.Token) (any, error) {
 	if value, ok := i.fields[name.Lexeme]; ok {
 		return value, nil
 	}
+	if method, ok := i.klass.findMethod(name.Lexeme); ok {
+		return method, nil
+	}
 	return nil, errors.New("Undefined property")
 }
 

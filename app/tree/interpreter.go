@@ -40,8 +40,16 @@ func (in *Interpreter) VisitBlockStmt(stmt definitions.BlockStmt) {
 // VisitClassStmt implements StmtVisitor.
 func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
 	in.Env.Define(stmt.Name.Lexeme, nil)
-	lclass := NewClass(stmt.Name.Lexeme)
-	in.Env.Assign(stmt.Name, lclass)
+	methods := make(map[string]LoxFunction)
+	for _, method := range stmt.Methods {
+		function := LoxFunction{
+			Declaration: method,
+			Closure:     *in.Env,
+		}
+		methods[method.Name.Lexeme] = function
+	}
+	klass := NewClass(stmt.Name.Lexeme, methods)
+	in.Env.Assign(stmt.Name, klass)
 }
 
 // VisitFunctionStmt implements StmtVisitor.

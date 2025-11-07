@@ -1,13 +1,22 @@
 package tree
 
 type Class struct {
-	Name string
+	Name    string
+	Methods map[string]LoxFunction
 }
 
-func NewClass(name string) Class {
+func NewClass(name string, methods map[string]LoxFunction) Class {
 	return Class{
-		Name: name,
+		Name:    name,
+		Methods: methods,
 	}
+}
+
+func (c *Class) findMethod(name string) (LoxFunction, bool) {
+	if method, ok := c.Methods[name]; ok {
+		return method, true
+	}
+	return LoxFunction{}, false
 }
 
 func (c Class) String() string {
