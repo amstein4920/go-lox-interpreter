@@ -189,7 +189,7 @@ func (r *Resolver) VisitReturnStmt(stmt ReturnStmt) {
 	if stmt.Value != nil {
 		r.resolveExpr(stmt.Value)
 	}
-	if r.currentFunction == functionTypeInitializer {
+	if stmt.Value != nil && r.currentFunction == functionTypeInitializer {
 		r.error(stmt.Keyword, "Can't return a value from an initalizer.")
 	}
 }
