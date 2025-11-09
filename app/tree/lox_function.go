@@ -17,16 +17,18 @@ type callable interface {
 }
 
 type LoxFunction struct {
-	Declaration definitions.FunctionStmt
-	Closure     *definitions.Environment
+	Declaration   definitions.FunctionStmt
+	Closure       *definitions.Environment
+	IsInitializer bool
 }
 
 func (lf LoxFunction) bind(instance Instance) LoxFunction {
 	environment := definitions.NewEnvironment(lf.Closure)
 	environment.Define("this", instance)
 	return LoxFunction{
-		Declaration: lf.Declaration,
-		Closure:     environment,
+		Declaration:   lf.Declaration,
+		Closure:       environment,
+		IsInitializer: lf.IsInitializer,
 	}
 }
 
@@ -47,6 +49,11 @@ func (lf LoxFunction) Call(in *Interpreter, args []any) (returnValueAny any) {
 		env.Define(val.Lexeme, args[i])
 	}
 	in.executeBlock(lf.Declaration.Body, env)
+
+	if lf.IsInitializer {
+		val, _ := lf.Closure.GetAt(0, definitions.Token{Lexeme: "this"})
+		return val
+	}
 	return nil
 }
 

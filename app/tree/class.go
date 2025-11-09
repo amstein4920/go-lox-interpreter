@@ -24,9 +24,18 @@ func (c Class) String() string {
 }
 
 func (c Class) Call(interpreter *Interpreter, arguments []any) any {
-	return NewInstance(c)
+	instance := NewInstance(c)
+	initializer, ok := c.findMethod("init")
+	if ok {
+		initializer.bind(instance).Call(interpreter, arguments)
+	}
+	return instance
 }
 
 func (c Class) Arity() int {
-	return 0
+	initializer, ok := c.findMethod("init")
+	if !ok {
+		return 0
+	}
+	return initializer.Arity()
 }

@@ -42,9 +42,11 @@ func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
 	in.Env.Define(stmt.Name.Lexeme, nil)
 	methods := make(map[string]LoxFunction)
 	for _, method := range stmt.Methods {
+		isInitializer := method.Name.Lexeme == "init"
 		function := LoxFunction{
-			Declaration: method,
-			Closure:     in.Env,
+			Declaration:   method,
+			Closure:       in.Env,
+			IsInitializer: isInitializer,
 		}
 		methods[method.Name.Lexeme] = function
 	}
@@ -55,8 +57,9 @@ func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
 // VisitFunctionStmt implements StmtVisitor.
 func (in *Interpreter) VisitFunctionStmt(stmt definitions.FunctionStmt) {
 	function := LoxFunction{
-		Declaration: stmt,
-		Closure:     in.Env,
+		Declaration:   stmt,
+		Closure:       in.Env,
+		IsInitializer: false,
 	}
 	in.Env.Define(stmt.Name.Lexeme, function)
 }
