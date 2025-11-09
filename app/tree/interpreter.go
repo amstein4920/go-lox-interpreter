@@ -254,7 +254,8 @@ func (in *Interpreter) VisitSuperExpr(expr *definitions.SuperExpr) any {
 
 // VisitThisExpr implements ExprVisitor.
 func (in *Interpreter) VisitThisExpr(expr *definitions.ThisExpr) any {
-	panic("unimplemented")
+	val, _ := in.lookUpVariable(expr.Keyword, expr)
+	return val
 }
 
 func (in *Interpreter) VisitUnaryExpr(expr *definitions.UnaryExpr) any {

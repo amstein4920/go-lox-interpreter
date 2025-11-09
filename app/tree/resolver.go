@@ -24,6 +24,13 @@ const (
 	functionTypeMethod
 )
 
+type classType int
+
+const (
+	classTypeNone classType = iota
+	classTypeClass
+)
+
 type Resolver struct {
 	interpreter     *Interpreter
 	scopes          []scopeMap
@@ -98,7 +105,8 @@ func (r *Resolver) VisitSuperExpr(expr *SuperExpr) any {
 
 // VisitThisExpr implements definitions.ExprVisitor.
 func (r *Resolver) VisitThisExpr(expr *ThisExpr) any {
-	panic("unimplemented")
+	r.resolveLocal(expr, expr.Keyword)
+	return nil
 }
 
 // VisitUnaryExpr implements definitions.ExprVisitor.
@@ -124,10 +132,15 @@ func (r *Resolver) VisitClassStmt(stmt ClassStmt) {
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
 
+	r.beginScope()
+	r.scopes[len(r.scopes)-1]["this"] = &scope{defined: true, used: true}
+
 	for _, method := range stmt.Methods {
 		declaration := functionTypeMethod
 		r.resolveFunc(method, declaration)
 	}
+
+	r.endScope()
 }
 
 // VisitExpressionStmt implements definitions.StmtVisitor.

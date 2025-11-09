@@ -21,6 +21,15 @@ type LoxFunction struct {
 	Closure     definitions.Environment
 }
 
+func (lf LoxFunction) bind(instance Instance) LoxFunction {
+	environment := definitions.NewEnvironment(&lf.Closure)
+	environment.Define("this", instance)
+	return LoxFunction{
+		Declaration: lf.Declaration,
+		Closure:     *environment,
+	}
+}
+
 func (lf LoxFunction) Call(in Interpreter, args []any) (returnValueAny any) {
 	defer func() {
 		if rec := recover(); rec != nil {

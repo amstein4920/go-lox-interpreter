@@ -277,6 +277,11 @@ func (p *Parser) primary() Expr {
 			Expression: expr,
 		}
 	}
+	if p.match(THIS) {
+		return &ThisExpr{
+			Keyword: p.previous(),
+		}
+	}
 	if p.match(IDENTIFIER) {
 		return &VariableExpr{
 			Name: p.previous(),

@@ -24,7 +24,7 @@ func (i *Instance) get(name definitions.Token) (any, error) {
 		return value, nil
 	}
 	if method, ok := i.klass.findMethod(name.Lexeme); ok {
-		return method, nil
+		return method.bind(*i), nil
 	}
 	return nil, errors.New("Undefined property")
 }
