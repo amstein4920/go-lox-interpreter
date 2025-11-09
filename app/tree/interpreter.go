@@ -44,7 +44,7 @@ func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
 	for _, method := range stmt.Methods {
 		function := LoxFunction{
 			Declaration: method,
-			Closure:     *in.Env,
+			Closure:     in.Env,
 		}
 		methods[method.Name.Lexeme] = function
 	}
@@ -56,7 +56,7 @@ func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
 func (in *Interpreter) VisitFunctionStmt(stmt definitions.FunctionStmt) {
 	function := LoxFunction{
 		Declaration: stmt,
-		Closure:     *in.Env,
+		Closure:     in.Env,
 	}
 	in.Env.Define(stmt.Name.Lexeme, function)
 }
@@ -195,7 +195,7 @@ func (in *Interpreter) VisitCallExpr(expr *definitions.CallExpr) any {
 		in.error(expr.Paren, fmt.Sprintf("Expected %d arguments but got %d.", fn.Arity(), len(arguments)))
 		return nil
 	}
-	return fn.Call(*in, arguments)
+	return fn.Call(in, arguments)
 }
 
 // VisitGetExpr implements ExprVisitor.
@@ -306,13 +306,11 @@ func (in *Interpreter) evaluate(expr definitions.Expr) any {
 func (in *Interpreter) executeBlock(stmts []Stmt, env *Environment) {
 	previous := in.Env
 	in.Env = env
+	defer func() { in.Env = previous }()
+
 	for _, stmt := range stmts {
 		in.execute(stmt)
-		if _, ok := stmt.(ReturnStmt); ok {
-			break
-		}
 	}
-	in.Env = previous
 }
 
 func (in *Interpreter) checkNumberOperand(operator definitions.Token, operand any) error {

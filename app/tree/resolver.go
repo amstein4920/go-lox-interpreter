@@ -35,12 +35,13 @@ type Resolver struct {
 	interpreter     *Interpreter
 	scopes          []scopeMap
 	currentFunction functionType
+	currentClass    classType
 	HadError        bool
 	stdErr          io.Writer
 }
 
 func NewResolver(interpreter *Interpreter, stdErr io.Writer) *Resolver {
-	return &Resolver{interpreter: interpreter, stdErr: stdErr}
+	return &Resolver{interpreter: interpreter, stdErr: stdErr, currentClass: classTypeNone}
 }
 
 // VisitAssignExpr implements definitions.ExprVisitor.
@@ -105,6 +106,9 @@ func (r *Resolver) VisitSuperExpr(expr *SuperExpr) any {
 
 // VisitThisExpr implements definitions.ExprVisitor.
 func (r *Resolver) VisitThisExpr(expr *ThisExpr) any {
+	if r.currentClass == classTypeNone {
+		r.error(expr.Keyword, "Can't use 'this' outside of class.")
+	}
 	r.resolveLocal(expr, expr.Keyword)
 	return nil
 }
@@ -129,6 +133,8 @@ func (r *Resolver) VisitVariableExpr(expr *VariableExpr) any {
 
 // VisitClassStmt implements definitions.StmtVisitor.
 func (r *Resolver) VisitClassStmt(stmt ClassStmt) {
+	enclosingClass := r.currentClass
+	r.currentClass = classTypeClass
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
 
@@ -141,6 +147,7 @@ func (r *Resolver) VisitClassStmt(stmt ClassStmt) {
 	}
 
 	r.endScope()
+	r.currentClass = enclosingClass
 }
 
 // VisitExpressionStmt implements definitions.StmtVisitor.

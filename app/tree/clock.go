@@ -6,7 +6,7 @@ import (
 
 type clock struct{}
 
-func (c clock) Call(_ Interpreter, _ []any) any {
+func (c clock) Call(_ *Interpreter, _ []any) any {
 	return float64(time.Now().Unix())
 }
 

@@ -12,25 +12,25 @@ type returnValue struct {
 }
 
 type callable interface {
-	Call(in Interpreter, args []any) any
+	Call(in *Interpreter, args []any) any
 	Arity() int
 }
 
 type LoxFunction struct {
 	Declaration definitions.FunctionStmt
-	Closure     definitions.Environment
+	Closure     *definitions.Environment
 }
 
 func (lf LoxFunction) bind(instance Instance) LoxFunction {
-	environment := definitions.NewEnvironment(&lf.Closure)
+	environment := definitions.NewEnvironment(lf.Closure)
 	environment.Define("this", instance)
 	return LoxFunction{
 		Declaration: lf.Declaration,
-		Closure:     *environment,
+		Closure:     environment,
 	}
 }
 
-func (lf LoxFunction) Call(in Interpreter, args []any) (returnValueAny any) {
+func (lf LoxFunction) Call(in *Interpreter, args []any) (returnValueAny any) {
 	defer func() {
 		if rec := recover(); rec != nil {
 			// only handle our returnValue; re-panic anything else
@@ -42,7 +42,7 @@ func (lf LoxFunction) Call(in Interpreter, args []any) (returnValueAny any) {
 		}
 	}()
 
-	env := definitions.NewEnvironment(&lf.Closure)
+	env := definitions.NewEnvironment(lf.Closure)
 	for i, val := range lf.Declaration.Params {
 		env.Define(val.Lexeme, args[i])
 	}

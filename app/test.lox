@@ -1,9 +1,8 @@
-class Spaceship {}
-var falcon = Spaceship();
-// Setting properties on an instance should work
-falcon.name = "Millennium Falcon";
-falcon.speed = 75.5;
-// Getting properties on an instance should work
-print "Ship details:";
-print falcon.name;
-print falcon.speed;
+fun fib(n) {
+    if (n < 2) return n;
+    return fib(n - 2) + fib(n - 1);
+}
+
+var start = clock();
+print fib(10) == 55;
+print (clock() - start) < 5; // 5 seconds

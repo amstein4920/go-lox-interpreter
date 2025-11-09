@@ -23,7 +23,7 @@ func (c Class) String() string {
 	return c.Name
 }
 
-func (c Class) Call(interpreter Interpreter, arguments []any) any {
+func (c Class) Call(interpreter *Interpreter, arguments []any) any {
 	return NewInstance(c)
 }
 
