@@ -1,14 +1,16 @@
 package tree
 
 type Class struct {
-	Name    string
-	Methods map[string]LoxFunction
+	Name       string
+	Methods    map[string]LoxFunction
+	SuperClass *Class
 }
 
-func NewClass(name string, methods map[string]LoxFunction) Class {
+func NewClass(name string, methods map[string]LoxFunction, klass *Class) Class {
 	return Class{
-		Name:    name,
-		Methods: methods,
+		Name:       name,
+		Methods:    methods,
+		SuperClass: klass,
 	}
 }
 

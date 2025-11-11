@@ -39,6 +39,15 @@ func (in *Interpreter) VisitBlockStmt(stmt definitions.BlockStmt) {
 
 // VisitClassStmt implements StmtVisitor.
 func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
+	var superClass *Class
+	if stmt.SuperClass != nil {
+		superClassValue, ok := in.evaluate(stmt.SuperClass).(Class)
+		if !ok {
+			in.error(stmt.SuperClass.Name, "Superclass must be a class.")
+		}
+		superClass = &superClassValue
+	}
+
 	in.Env.Define(stmt.Name.Lexeme, nil)
 	methods := make(map[string]LoxFunction)
 	for _, method := range stmt.Methods {
@@ -50,7 +59,7 @@ func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
 		}
 		methods[method.Name.Lexeme] = function
 	}
-	klass := NewClass(stmt.Name.Lexeme, methods)
+	klass := NewClass(stmt.Name.Lexeme, methods, superClass)
 	in.Env.Assign(stmt.Name, klass)
 }
 
