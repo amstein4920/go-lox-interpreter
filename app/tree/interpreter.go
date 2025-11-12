@@ -49,6 +49,12 @@ func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
 	}
 
 	in.Env.Define(stmt.Name.Lexeme, nil)
+
+	if stmt.SuperClass != nil {
+		in.Env = NewEnvironment(in.Env)
+		in.Env.Define("super", superClass)
+	}
+
 	methods := make(map[string]LoxFunction)
 	for _, method := range stmt.Methods {
 		isInitializer := method.Name.Lexeme == "init"
@@ -60,6 +66,9 @@ func (in *Interpreter) VisitClassStmt(stmt definitions.ClassStmt) {
 		methods[method.Name.Lexeme] = function
 	}
 	klass := NewClass(stmt.Name.Lexeme, methods, superClass)
+	if superClass != nil {
+		in.Env = in.Env.Parent
+	}
 	in.Env.Assign(stmt.Name, klass)
 }
 
@@ -261,7 +270,15 @@ func (in *Interpreter) VisitSetExpr(expr *definitions.SetExpr) any {
 
 // VisitSuperExpr implements ExprVisitor.
 func (in *Interpreter) VisitSuperExpr(expr *definitions.SuperExpr) any {
-	panic("unimplemented")
+	distance := in.Locals[expr]
+	superClass, _ := in.Env.GetAt(distance, Token{Lexeme: "super"})
+	object, _ := in.Env.GetAt(distance-1, Token{Lexeme: "this"})
+	method, ok := superClass.(*Class).findMethod(expr.Method.Lexeme)
+	if !ok {
+		in.error(expr.Method, fmt.Sprintf("Undefined property %s.", expr.Method.Lexeme))
+		return nil
+	}
+	return method.bind(object.(Instance))
 }
 
 // VisitThisExpr implements ExprVisitor.

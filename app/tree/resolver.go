@@ -102,7 +102,8 @@ func (r *Resolver) VisitSetExpr(expr *SetExpr) any {
 
 // VisitSuperExpr implements definitions.ExprVisitor.
 func (r *Resolver) VisitSuperExpr(expr *SuperExpr) any {
-	panic("unimplemented")
+	r.resolveLocal(expr, expr.Keyword)
+	return nil
 }
 
 // VisitThisExpr implements definitions.ExprVisitor.
