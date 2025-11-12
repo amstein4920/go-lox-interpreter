@@ -30,19 +30,20 @@ type classType int
 const (
 	classTypeNone classType = iota
 	classTypeClass
+	classTypeSubClass
 )
 
 type Resolver struct {
-	interpreter     *Interpreter
-	scopes          []scopeMap
-	currentFunction functionType
-	currentClass    classType
-	HadError        bool
-	stdErr          io.Writer
+	interpreter      *Interpreter
+	scopes           []scopeMap
+	currentFunction  functionType
+	currentClassType classType
+	HadError         bool
+	stdErr           io.Writer
 }
 
 func NewResolver(interpreter *Interpreter, stdErr io.Writer) *Resolver {
-	return &Resolver{interpreter: interpreter, stdErr: stdErr, currentClass: classTypeNone}
+	return &Resolver{interpreter: interpreter, stdErr: stdErr, currentClassType: classTypeNone}
 }
 
 // VisitAssignExpr implements definitions.ExprVisitor.
@@ -102,13 +103,21 @@ func (r *Resolver) VisitSetExpr(expr *SetExpr) any {
 
 // VisitSuperExpr implements definitions.ExprVisitor.
 func (r *Resolver) VisitSuperExpr(expr *SuperExpr) any {
+	if r.currentClassType == classTypeNone {
+		r.error(expr.Keyword, "Can't use 'super' outside of a class")
+		return nil
+	}
+	if r.currentClassType != classTypeSubClass {
+		r.error(expr.Keyword, "Can't use 'super' in  a class with no superclass.")
+		return nil
+	}
 	r.resolveLocal(expr, expr.Keyword)
 	return nil
 }
 
 // VisitThisExpr implements definitions.ExprVisitor.
 func (r *Resolver) VisitThisExpr(expr *ThisExpr) any {
-	if r.currentClass == classTypeNone {
+	if r.currentClassType == classTypeNone {
 		r.error(expr.Keyword, "Can't use 'this' outside of class.")
 	}
 	r.resolveLocal(expr, expr.Keyword)
@@ -135,12 +144,13 @@ func (r *Resolver) VisitVariableExpr(expr *VariableExpr) any {
 
 // VisitClassStmt implements definitions.StmtVisitor.
 func (r *Resolver) VisitClassStmt(stmt ClassStmt) {
-	enclosingClass := r.currentClass
-	r.currentClass = classTypeClass
+	enclosingClass := r.currentClassType
+	r.currentClassType = classTypeClass
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
 
 	if stmt.SuperClass != nil {
+		r.currentClassType = classTypeSubClass
 		if stmt.Name.Lexeme == stmt.SuperClass.Name.Lexeme {
 			r.error(stmt.SuperClass.Name, "A class can't inherit from itself.")
 		}
@@ -167,7 +177,7 @@ func (r *Resolver) VisitClassStmt(stmt ClassStmt) {
 	if stmt.SuperClass != nil {
 		r.endScope()
 	}
-	r.currentClass = enclosingClass
+	r.currentClassType = enclosingClass
 }
 
 // VisitExpressionStmt implements definitions.StmtVisitor.
