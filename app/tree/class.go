@@ -18,6 +18,9 @@ func (c *Class) findMethod(name string) (LoxFunction, bool) {
 	if method, ok := c.Methods[name]; ok {
 		return method, true
 	}
+	if c.SuperClass != nil {
+		return c.SuperClass.findMethod(name)
+	}
 	return LoxFunction{}, false
 }
 

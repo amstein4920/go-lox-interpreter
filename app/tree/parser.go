@@ -276,6 +276,15 @@ func (p *Parser) primary() Expr {
 			Value: p.previous().Literal,
 		}
 	}
+	if p.match(SUPER) {
+		keyword := p.previous()
+		p.consume(DOT, "Expect '.' after 'super'.")
+		method := p.consume(IDENTIFIER, "Expect superclass method name.")
+		return &SuperExpr{
+			Keyword: keyword,
+			Method:  method,
+		}
+	}
 	if p.match(LEFT_PAREN) {
 		expr := p.expression()
 		p.consume(RIGHT_PAREN, "Expected ) after (")

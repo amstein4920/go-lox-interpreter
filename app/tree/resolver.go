@@ -146,6 +146,11 @@ func (r *Resolver) VisitClassStmt(stmt ClassStmt) {
 		r.resolveExpr(stmt.SuperClass)
 	}
 
+	if stmt.SuperClass != nil {
+		r.beginScope()
+		r.scopes[len(r.scopes)-1]["super"] = &scope{defined: true, used: true}
+	}
+
 	r.beginScope()
 	r.scopes[len(r.scopes)-1]["this"] = &scope{defined: true, used: true}
 
@@ -158,6 +163,9 @@ func (r *Resolver) VisitClassStmt(stmt ClassStmt) {
 	}
 
 	r.endScope()
+	if stmt.SuperClass != nil {
+		r.endScope()
+	}
 	r.currentClass = enclosingClass
 }
 
